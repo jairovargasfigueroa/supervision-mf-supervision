@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>Supervisión · prueba aislada</title>
+    <!-- Página solo para desarrollar el microfrontend sin el shell -->
+    <script type="application/json" id="mfe-manifest">
+      { "mf-supervision": "./remoteEntry.json" }
+    </script>
+    <script>
+      window.addEventListener(
+        'mfe-loader-available',
+        (e) => e.detail.loadRemoteModule('mf-supervision', './Bootstrap'),
+        { once: true },
+      );
+    </script>
+    <script src="https://unpkg.com/@softarc/native-federation-orchestrator@4.8.0/quickstart.mjs"></script>
+  </head>
+  <body>
+    <mf-supervision></mf-supervision>
+  </body>
+</html>

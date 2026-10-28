@@ -9,4 +9,4 @@
 
 ## Expone
 
-- Módulo remoto por Module Federation, montado por el shell en su ruta.
+- Web Component cargado por Native Federation (`./Bootstrap` registra la etiqueta), montado por el shell en su ruta.

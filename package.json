@@ -1,0 +1,22 @@
+{
+  "name": "mf-supervision",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node build.mjs --dev",
+    "build": "node build.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@softarc/native-federation": "~4.7.0",
+    "@softarc/native-federation-esbuild": "^4.2.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "typescript": "~6.0.2"
+  }
+}
