@@ -4,7 +4,7 @@ Requisitos y diseño: `docs/specs/009-consultar-tablero/` de la carpeta que agru
 
 Marca cada tarea al terminarla (con sus pruebas y su commit).
 
-- [ ] Instalar `@apollo/client` 4 + `graphql`; cliente con el token del shell
-- [ ] Tarjetas de indicadores y tabla ordenable (por defecto por diferencia)
-- [ ] Navegación al detalle de obra del shell; avisos de datos parciales; botón «Actualizar»
-- [ ] Pruebas
+- [x] Instalar `@apollo/client` 4 + `graphql`; cliente con el token del shell
+- [x] Tarjetas de indicadores y tabla ordenable (por defecto por diferencia)
+- [x] Navegación al detalle de obra del shell; avisos de datos parciales; botón «Actualizar»
+- [x] Pruebas

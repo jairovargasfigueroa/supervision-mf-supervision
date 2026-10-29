@@ -10,13 +10,18 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@apollo/client": "^4.3.5",
     "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^9.5.0",
     "@mui/material": "^9.5.0",
+    "@tanstack/react-router": "^1.170.46",
+    "@tanstack/react-table": "^9.3.1",
+    "graphql": "^16.14.2",
     "react": "^19.3.1",
-    "react-dom": "^19.3.1"
+    "react-dom": "^19.3.1",
+    "rxjs": "^7.8.2"
   },
   "devDependencies": {
     "@softarc/native-federation": "~4.7.0",

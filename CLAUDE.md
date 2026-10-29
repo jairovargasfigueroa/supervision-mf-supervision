@@ -4,13 +4,13 @@ Microfrontend del ERP para supervisión: tablero de obras (base) y, en la capa 5
 
 Parte de la «Plataforma de supervisión de obras». Si existe `../../CLAUDE.md` (carpeta que agrupa todos los proyectos), léelo primero: tiene las reglas transversales, el plan y los contratos generales.
 
-**Estado:** Native Federation configurado, tema MUI dentro del Shadow DOM, `formato.ts`, estados vacío y error, y lectura de la sesión del shell (`nucleo/sesion.ts`, `nucleo/configuracion.ts`; sin shell muestra «Abre esta pantalla desde el ERP») (fase 1); sin pantallas del negocio. No implementes una funcionalidad sin su especificación aprobada en `docs/specs/`.
+**Estado:** Native Federation configurado, tema MUI dentro del Shadow DOM, `formato.ts`, estados vacío y error, y lectura de la sesión del shell (`nucleo/sesion.ts`, `nucleo/configuracion.ts`; sin shell muestra «Abre esta pantalla desde el ERP») (fase 1); tablero de obras con Apollo Client y TanStack Router/Table (009). No implementes una funcionalidad sin su especificación aprobada en `docs/specs/`.
 
 ## Stack
 
 - Node 24 · React 19 · TypeScript 6
 - Native Federation 4 con el **adaptador esbuild** (`@softarc/native-federation` 4.7 + `@softarc/native-federation-esbuild` 4.2) y su preset oficial de React
-- Previsto: Apollo Client 4 (GraphQL hacia el gateway); capa 3: voz a texto en el navegador (Whisper); capa 5: exportar a Excel
+- Apollo Client 4 (GraphQL hacia el gateway, `nucleo/apollo.ts` con el token del shell); previsto: capa 3: voz a texto en el navegador (Whisper); capa 5: exportar a Excel
 - Puerto: `4203` (`PORT`)
 
 ## Comandos
