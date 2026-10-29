@@ -10,7 +10,7 @@ Parte de la «Plataforma de supervisión de obras». Si existe `../../CLAUDE.md`
 
 - Node 24 · React 19 · TypeScript 6
 - Native Federation 4 con el **adaptador esbuild** (`@softarc/native-federation` 4.7 + `@softarc/native-federation-esbuild` 4.2) y su preset oficial de React
-- Previsto: Apollo Client 4 (GraphQL hacia el gateway); capa 3: voz a texto en el navegador (Whisper); capa 5: exportar a Excel
+- Apollo Client 4 (GraphQL hacia el gateway, `nucleo/apollo.ts` con el token del shell); previsto: capa 3: voz a texto en el navegador (Whisper); capa 5: exportar a Excel
 - Puerto: `4203` (`PORT`)
 
 ## Comandos
