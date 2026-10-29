@@ -4,7 +4,7 @@ Microfrontend del ERP para supervisión: tablero de obras (base) y, en la capa 5
 
 Parte de la «Plataforma de supervisión de obras». Si existe `../../CLAUDE.md` (carpeta que agrupa todos los proyectos), léelo primero: tiene las reglas transversales, el plan y los contratos generales.
 
-**Estado:** proyecto creado con Native Federation configurado, sin pantallas. No implementes una funcionalidad sin su especificación aprobada en `docs/specs/`.
+**Estado:** Native Federation configurado, tema MUI dentro del Shadow DOM, `formato.ts`, estados vacío y error, y lectura de la sesión del shell (`nucleo/sesion.ts`, `nucleo/configuracion.ts`; sin shell muestra «Abre esta pantalla desde el ERP») (fase 1); sin pantallas del negocio. No implementes una funcionalidad sin su especificación aprobada en `docs/specs/`.
 
 ## Stack
 
@@ -20,6 +20,7 @@ npm install
 npm start            # recompila al guardar y sirve en http://localhost:4203 (recargar el navegador a mano)
 npm run build        # genera dist/ con remoteEntry.json
 npm run typecheck
+npm test             # Vitest
 ```
 
 `http://localhost:4203` abre `public/index.html`, una página para probar el microfrontend sin el shell.
@@ -31,16 +32,9 @@ npm run typecheck
 - `build.mjs` compila con `runEsBuildBuilder` y, con `--dev`, sirve `dist/` y `public/` con CORS abierto para el shell.
 - Los estilos van dentro del Shadow DOM; no se cargan hojas globales.
 
-## Estructura prevista
+## Estructura
 
-```
-src/
-  bootstrap.tsx   Web Component (no tocar salvo para pasar propiedades del shell)
-  App.tsx
-  tablero/        resumen de obras (base)
-  agentes/        informes y sugerencias para aprobar (capa 5)
-  reportes-voz/   consulta por voz, tabla y exportar a Excel (capa 5)
-```
+Ver `docs/estructura.md` (obligatorio): `bootstrap.tsx` (Web Component con Shadow DOM, caché de Emotion y tema), `nucleo/` (sesión, configuración, formato), `compartido/` y una carpeta por área (`tablero/`; en la capa 5 `agentes/` y `reportes-voz/`).
 
 ## Reglas del proyecto
 
@@ -60,4 +54,4 @@ src/
 
 Conventional Commits en español e imperativo (`feat(tablero): agrega resumen de obras`). Sin coautoría ni firmas de la IA.
 
-Trabajo en ramas `feat/NNN-nombre` con *pull request* y revisión; nunca hagas *push* a `main` (está protegida). Detalle y definición de terminado: `docs/flujo-trabajo.md` del repo `supervision-docs`.
+Git Flow: ramas `feat/`, `fix/`, `docs/`… desde `develop`, que entran por *pull request*; nunca hagas *push* a `main` ni a `develop` (están protegidas). El agente crea y fusiona los PR (merge normal, sin squash) hacia `develop` cuando todas las pruebas pasan. Detalle y definición de terminado: `docs/flujo-trabajo.md` del repo `supervision-docs`.
