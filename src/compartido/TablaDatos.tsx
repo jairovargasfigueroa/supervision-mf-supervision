@@ -6,7 +6,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import TableSortLabel from '@mui/material/TableSortLabel';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import type { Theme } from '@mui/material/styles';
+import { useTheme } from '@mui/material/styles';
 import {
   createColumnHelper,
   createSortedRowModel,
@@ -89,7 +89,7 @@ export function TablaDatos<T extends RowData>({
   alPulsarFila,
   etiquetaFila,
 }: Props<T>) {
-  const celular = useMediaQuery((tema: Theme) => tema.breakpoints.down('sm'));
+  const celular = useMediaQuery(useTheme().breakpoints.down('sm'));
   const tabla = useTable({
     features: caracteristicasTabla,
     columns: columnas,
