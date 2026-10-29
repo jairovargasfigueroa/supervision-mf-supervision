@@ -161,7 +161,7 @@ describe('TableroPagina', () => {
     const lomas = within(filas[0]);
     expect(lomas.getByText('16,3 %')).toBeTruthy();
     expect(lomas.getByText('50 %')).toBeTruthy();
-    expect(lomas.getByText('33,66')).toBeTruthy();
+    expect(lomas.getByText('33,7 %')).toBeTruthy();
     expect(lomas.getByText('2026-09')).toBeTruthy();
     expect(lomas.getByText('Observada').closest('[data-tono]')?.getAttribute('data-tono')).toBe('error');
     expect(lomas.getByText('En riesgo').closest('[data-tono]')?.getAttribute('data-tono')).toBe('atencion');

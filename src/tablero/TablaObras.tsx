@@ -56,7 +56,8 @@ export function TablaObras({ filas, alPulsarObra, avisoMateriales }: Props) {
         header: 'Diferencia',
         sortFn: 'basic',
         meta: { numerica: true },
-        cell: ({ getValue }) => formatearCantidad(getValue()),
+        // Puntos de porcentaje (plazo − avance), con el mismo formato que avance y plazo
+        cell: ({ getValue }) => formatearPorcentaje(getValue()),
       }),
       // Sin dato de Materiales la fila va al final al ordenar de mayor a menor
       columna.accessor((f) => f.materialesBajos ?? -1, {
