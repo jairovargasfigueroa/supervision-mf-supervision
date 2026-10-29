@@ -4,7 +4,7 @@ Microfrontend del ERP para supervisión: tablero de obras (base) y, en la capa 5
 
 Parte de la «Plataforma de supervisión de obras». Si existe `../../CLAUDE.md` (carpeta que agrupa todos los proyectos), léelo primero: tiene las reglas transversales, el plan y los contratos generales.
 
-**Estado:** proyecto creado con Native Federation configurado, sin pantallas. No implementes una funcionalidad sin su especificación aprobada en `docs/specs/`.
+**Estado:** Native Federation configurado, tema MUI dentro del Shadow DOM, `formato.ts` y estados vacío y error (fase 1); sin pantallas del negocio. No implementes una funcionalidad sin su especificación aprobada en `docs/specs/`.
 
 ## Stack
 
@@ -20,6 +20,7 @@ npm install
 npm start            # recompila al guardar y sirve en http://localhost:4203 (recargar el navegador a mano)
 npm run build        # genera dist/ con remoteEntry.json
 npm run typecheck
+npm test             # Vitest
 ```
 
 `http://localhost:4203` abre `public/index.html`, una página para probar el microfrontend sin el shell.
