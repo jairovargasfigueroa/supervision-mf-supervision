@@ -13,7 +13,7 @@ React 19 · MUI 9 con `@emotion/cache` dentro del Shadow DOM y `tema.ts` (primar
 ```
 src/
   bootstrap.tsx, App.tsx, tema.ts, router.tsx
-  nucleo/       sesion.ts, apollo.ts, errores.ts, formato.ts
+  nucleo/       sesion.ts, configuracion.ts, apollo.ts, errores.ts, formato.ts
   tablero/      TableroPagina.tsx, TarjetaIndicador.tsx, TablaObras.tsx, tablero.graphql.ts
   compartido/   TablaDatos.tsx, EstadoChip.tsx, EstadoVacio.tsx, EstadoError.tsx
 ```

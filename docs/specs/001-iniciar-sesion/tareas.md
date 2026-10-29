@@ -4,5 +4,5 @@ Requisitos y diseño: `docs/specs/001-iniciar-sesion/` de la carpeta que agrupa 
 
 Marca cada tarea al terminarla (con sus pruebas y su commit).
 
-- [ ] Módulo `sesion.ts` con `obtenerToken()` y `usuario` desde `window.plataforma.sesion`
-- [ ] Mensaje «Abre esta pantalla desde el ERP» si no hay sesión del shell
+- [x] Módulo `sesion.ts` con `obtenerToken()` y `usuario` desde `window.plataforma.sesion`
+- [x] Mensaje «Abre esta pantalla desde el ERP» si no hay sesión del shell
