@@ -13,7 +13,16 @@ React 19 · MUI 9 con `@emotion/cache` dentro del Shadow DOM y `tema.ts` (primar
 ```
 src/
   bootstrap.tsx, App.tsx, tema.ts, router.tsx
-  nucleo/       sesion.ts, configuracion.ts, apollo.ts, errores.ts, formato.ts
-  tablero/      TableroPagina.tsx, TarjetaIndicador.tsx, TablaObras.tsx, tablero.graphql.ts
+  nucleo/       sesion.ts, configuracion.ts, apollo.ts, errores.ts, formato.ts, permisos.ts, navegacion.ts
+  tablero/      TableroPagina.tsx, TarjetaIndicador.tsx, TablaObras.tsx, tablero.graphql.ts, datos-parciales.ts
   compartido/   TablaDatos.tsx, EstadoChip.tsx, EstadoVacio.tsx, EstadoError.tsx
 ```
+
+- `nucleo/permisos.ts`: roles efectivos del ERP (solo los internos) y qué ve cada rol (cobros vencidos: `admin` y `gerente`).
+- `nucleo/navegacion.ts`: ir a otra área del ERP (`pushState` + `popstate`, por ejemplo `/obras/:id`).
+- `tablero/datos-parciales.ts`: qué partes del tablero llegaron y el aviso «Datos de {servicio} no disponibles» de las que faltan.
+- `compartido/TablaDatos.tsx`: TanStack Table dibujada con la Table de MUI; orden inicial, filas pulsables (clic o Enter) y, debajo de 600 px, desplazamiento horizontal con la primera columna fija.
+
+## Rutas
+
+TanStack Router con `createBrowserHistory()` y `basepath: '/supervision'`: `/supervision` es el tablero (009); cualquier otra ruta muestra el aviso con «Ir al tablero». El historial del navegador de TanStack intercepta `pushState`; `App.tsx` lo destruye al desmontar. Para ir a otra área se usa `irAlErp()` de `nucleo/navegacion.ts`.
