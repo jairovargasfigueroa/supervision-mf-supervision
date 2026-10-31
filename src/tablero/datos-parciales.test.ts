@@ -12,10 +12,17 @@ const FILA: FilaTablero = {
   enRiesgo: false,
   materialesBajos: 0,
   ultimaPlanilla: null,
+  riesgoRetraso: { probabilidad: 0.2, nivel: 'BAJO', factores: [], versionModelo: 'rr-1.0.0', calculadaEn: null },
 };
 
 const COMPLETO: Tablero = {
-  indicadores: { obrasEnEjecucion: 3, obrasEnRiesgo: 1, materialesBajos: 1, cobrosVencidos: { cantidad: 1, monto: 10 } },
+  indicadores: {
+    obrasEnEjecucion: 3,
+    obrasEnRiesgo: 1,
+    materialesBajos: 1,
+    cobrosVencidos: { cantidad: 1, monto: 10 },
+    obrasRiesgoAlto: 0,
+  },
   obras: [FILA],
 };
 
@@ -74,5 +81,29 @@ describe('tableroVisible', () => {
     );
     expect(visible.obrasEnEjecucion).toEqual({ aviso: 'Datos de Materiales no disponibles' });
     expect(visible.obras).toEqual({ valor: [FILA] });
+  });
+  it('IA caída: «Riesgo alto (modelo)» y las celdas de riesgo avisan «Datos de IA no disponibles» (402, criterio 12)', () => {
+    const sinIa: Tablero = {
+      indicadores: { ...COMPLETO.indicadores!, obrasRiesgoAlto: null },
+      obras: [{ ...FILA, riesgoRetraso: null }],
+    };
+    const visible = tableroVisible(
+      sinIa,
+      errores(
+        { path: ['tablero', 'indicadores', 'obrasRiesgoAlto'], servicio: 'ia' },
+        { path: ['tablero', 'obras', 0, 'riesgoRetraso'], servicio: 'ia' },
+      ),
+      true,
+    );
+    expect(visible.obrasRiesgoAlto).toEqual({ aviso: 'Datos de IA no disponibles' });
+    expect(visible.avisoRiesgoFilas).toBe('Datos de IA no disponibles');
+    expect(visible.avisoMaterialesFilas).toBeUndefined();
+    expect(visible.obrasEnEjecucion).toEqual({ valor: 3 });
+  });
+
+  it('sin error, un riesgo en null también se atribuye a IA (dueño del campo)', () => {
+    const visible = tableroVisible({ ...COMPLETO, obras: [{ ...FILA, riesgoRetraso: null }] }, undefined, true);
+    expect(visible.avisoRiesgoFilas).toBe('Datos de IA no disponibles');
+    expect(visible.obrasRiesgoAlto).toEqual({ valor: 0 });
   });
 });

@@ -16,6 +16,7 @@ src/
   nucleo/       sesion.ts, configuracion.ts, apollo.ts, errores.ts, formato.ts, permisos.ts, navegacion.ts,
                 conexion.ts, consulta-respaldo.ts
   tablero/      TableroPagina.tsx, TarjetaIndicador.tsx, TablaObras.tsx, tablero.graphql.ts, datos-parciales.ts
+  riesgo/       ChipRiesgo.tsx (402: nivel del modelo como chip y porcentaje)
   compartido/   TablaDatos.tsx, EstadoChip.tsx, EstadoVacio.tsx, EstadoError.tsx, AvisoSinConexion.tsx
 ```
 

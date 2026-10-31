@@ -15,9 +15,13 @@ export interface TableroVisible {
   materialesBajos: Dato<number>;
   /** `undefined` si el rol no ve cobros (la tarjeta no se muestra). */
   cobrosVencidos?: Dato<ResumenMonto>;
+  /** Obras con riesgo ALTO según el modelo (402). */
+  obrasRiesgoAlto: Dato<number>;
   obras: Dato<FilaTablero[]>;
   /** Aviso de la columna «Materiales bajos» si alguna fila llegó sin ese dato. */
   avisoMaterialesFilas?: string;
+  /** Aviso de la columna «Riesgo (modelo)» si alguna fila llegó sin ese dato (IA no respondió, 402). */
+  avisoRiesgoFilas?: string;
 }
 
 type Ruta = readonly (string | number)[];
@@ -51,6 +55,11 @@ export function tableroVisible(tablero: Tablero, error: unknown, verCobros: bool
   const rutaInd = ['tablero', 'indicadores'] as const;
   const obras = tablero.obras;
   const filaSinMateriales = obras?.findIndex((f) => f.materialesBajos === null) ?? -1;
+  const filaSinRiesgo = obras?.findIndex((f) => f.riesgoRetraso === null) ?? -1;
+  const avisoFila = (indice: number, campo: string, dueno: Servicio) =>
+    indice < 0
+      ? undefined
+      : avisoNoDisponible(servicioDelError(errores, ['tablero', 'obras', indice, campo]) ?? dueno);
 
   return {
     obrasEnEjecucion: dato(ind?.obrasEnEjecucion, [...rutaInd, 'obrasEnEjecucion'], 'obras', errores),
@@ -59,12 +68,9 @@ export function tableroVisible(tablero: Tablero, error: unknown, verCobros: bool
     cobrosVencidos: verCobros
       ? dato(ind?.cobrosVencidos, [...rutaInd, 'cobrosVencidos'], 'finanzas', errores)
       : undefined,
+    obrasRiesgoAlto: dato(ind?.obrasRiesgoAlto, [...rutaInd, 'obrasRiesgoAlto'], 'ia', errores),
     obras: dato(obras, ['tablero', 'obras'], 'obras', errores),
-    avisoMaterialesFilas:
-      filaSinMateriales < 0
-        ? undefined
-        : avisoNoDisponible(
-            servicioDelError(errores, ['tablero', 'obras', filaSinMateriales, 'materialesBajos']) ?? 'materiales',
-          ),
+    avisoMaterialesFilas: avisoFila(filaSinMateriales, 'materialesBajos', 'materiales'),
+    avisoRiesgoFilas: avisoFila(filaSinRiesgo, 'riesgoRetraso', 'ia'),
   };
 }

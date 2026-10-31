@@ -21,11 +21,15 @@ export const NOMBRE_SERVICIO = {
   obras: 'Obras',
   materiales: 'Materiales',
   finanzas: 'Finanzas',
+  ia: 'IA',
 } as const;
 
 export type Servicio = keyof typeof NOMBRE_SERVICIO;
 
-/** Aviso del tablero cuando un servicio no responde (009, criterio 5): «Datos de Obras no disponibles». */
+/**
+ * Aviso del tablero cuando un servicio no responde (009, criterio 5): «Datos de Obras no disponibles»; para el
+ * servicio de IA, «Datos de IA no disponibles» (402 y 403, criterio 12).
+ */
 export function avisoNoDisponible(servicio: Servicio): string {
   return `Datos de ${NOMBRE_SERVICIO[servicio]} no disponibles`;
 }

@@ -4,7 +4,7 @@ import { MockedProvider } from '@apollo/client/testing/react';
 import type { MockLink } from '@apollo/client/testing';
 import { createMemoryHistory, RouterProvider } from '@tanstack/react-router';
 import { crearRouter } from '../router';
-import { TABLERO, type FilaTablero, type IndicadoresTablero } from './tablero.graphql';
+import { TABLERO, type FilaTablero, type IndicadoresTablero, type NivelRiesgo } from './tablero.graphql';
 
 /** Sesión del shell con los roles del token (incluye los técnicos de Keycloak). */
 function sesionCon(...roles: string[]) {
@@ -30,10 +30,26 @@ const OBRA_1 = 'b0000000-0000-4000-8000-000000000101';
 const OBRA_2 = 'b0000000-0000-4000-8000-000000000102';
 const OBRA_3 = 'b0000000-0000-4000-8000-000000000103';
 
-const fila = (f: Omit<FilaTablero, 'ultimaPlanilla'> & { ultimaPlanilla?: FilaTablero['ultimaPlanilla'] }) => ({
+/** Riesgo del modelo (402) como lo devuelve el gateway. */
+const riesgo = (probabilidad: number | null, nivel: NivelRiesgo, factores: string[] = []) => ({
+  __typename: 'RiesgoRetraso',
+  probabilidad,
+  nivel,
+  factores: factores.map((descripcion, i) => ({ __typename: 'FactorRiesgo', variable: `v${i}`, descripcion, peso: 0.5 })),
+  versionModelo: nivel === 'SIN_DATOS' ? null : 'rr-1.0.0',
+  calculadaEn: nivel === 'SIN_DATOS' ? null : '2026-11-15T05:00:00Z',
+});
+
+const fila = (
+  f: Omit<FilaTablero, 'ultimaPlanilla' | 'riesgoRetraso'> & {
+    ultimaPlanilla?: FilaTablero['ultimaPlanilla'];
+    riesgoRetraso?: ReturnType<typeof riesgo> | null;
+  },
+) => ({
   __typename: 'FilaTablero',
   ...f,
   ultimaPlanilla: f.ultimaPlanilla ? { __typename: 'PlanillaCorta', ...f.ultimaPlanilla } : null,
+  riesgoRetraso: f.riesgoRetraso === undefined ? riesgo(null, 'SIN_DATOS') : f.riesgoRetraso,
 });
 
 const FILAS = [
@@ -55,6 +71,7 @@ const FILAS = [
     enRiesgo: false,
     materialesBajos: 0,
     ultimaPlanilla: { periodo: '2026-09', estado: 'PRESENTADA' },
+    riesgoRetraso: riesgo(0.2849, 'BAJO'),
   }),
   fila({
     obraId: OBRA_2,
@@ -65,6 +82,7 @@ const FILAS = [
     enRiesgo: true,
     materialesBajos: 1,
     ultimaPlanilla: { periodo: '2026-09', estado: 'OBSERVADA' },
+    riesgoRetraso: riesgo(0.72, 'ALTO', ['El avance es de solo 16,3 %']),
   }),
 ];
 
@@ -73,6 +91,7 @@ const INDICADORES: IndicadoresTablero = {
   obrasEnRiesgo: 1,
   materialesBajos: 1,
   cobrosVencidos: { cantidad: 1, monto: 290134.8 },
+  obrasRiesgoAlto: 1,
 };
 
 type Respuesta = {
@@ -204,6 +223,70 @@ describe('TableroPagina', () => {
     const cobros = await tarjeta('Cobros vencidos');
     expect(cobros.getByText('1')).toBeTruthy();
     expect(cobros.getByText('Bs 290.134,80')).toBeTruthy();
+  });
+
+  it('muestra la quinta tarjeta «Riesgo alto (modelo)» con las obras en ALTO (402, criterio 6)', async () => {
+    dibujar([tablero()]);
+    const riesgoAlto = await tarjeta('Riesgo alto (modelo)');
+    expect(riesgoAlto.getByText('1')).toBeTruthy();
+    expect(screen.getAllByRole('group')).toHaveLength(5);
+  });
+
+  it('la columna «Riesgo (modelo)» muestra chip por nivel y porcentaje, junto a «En riesgo» (402, criterios 6 y 7)', async () => {
+    dibujar([tablero()]);
+    const [lomas, palmeras, sanMartin] = await filasTabla();
+    const celdaRiesgo = (f: HTMLElement) => within(f).getAllByRole('cell')[7];
+
+    expect(within(lomas).getByText('En riesgo')).toBeTruthy();
+    expect(within(celdaRiesgo(lomas)).getByText('Alto').closest('[data-tono]')?.getAttribute('data-tono')).toBe(
+      'error',
+    );
+    expect(within(celdaRiesgo(lomas)).getByText('72 %')).toBeTruthy();
+    expect(within(celdaRiesgo(palmeras)).getByText('Bajo').closest('[data-tono]')?.getAttribute('data-tono')).toBe(
+      'exito',
+    );
+    expect(within(celdaRiesgo(palmeras)).getByText('28 %')).toBeTruthy();
+    expect(celdaRiesgo(sanMartin).textContent).toBe('Sin datos');
+    expect(
+      within(celdaRiesgo(sanMartin)).getByText('Sin datos').closest('[data-tono]')?.getAttribute('data-tono'),
+    ).toBe('neutro');
+  });
+
+  it('se puede ordenar por «Riesgo (modelo)»; sin datos va al final de mayor a menor (402, criterio 6)', async () => {
+    dibujar([tablero()]);
+    await filasTabla();
+    const ordenar = () => fireEvent.click(screen.getByRole('button', { name: 'Riesgo (modelo)' }));
+
+    ordenar();
+    const primero = nombres(await filasTabla());
+    ordenar();
+    const segundo = nombres(await filasTabla());
+    const descendente = [primero, segundo].find((orden) => orden[0] === 'Condominio Las Lomas')!;
+    expect(descendente).toEqual(['Condominio Las Lomas', 'Edificio Las Palmeras', 'Unidad Educativa San Martín']);
+    expect([primero, segundo]).toContainEqual([
+      'Unidad Educativa San Martín',
+      'Edificio Las Palmeras',
+      'Condominio Las Lomas',
+    ]);
+  });
+
+  it('con IA caída la tarjeta y la columna muestran «—» con «Datos de IA no disponibles» y el resto normal (402, criterio 12)', async () => {
+    const sinIa = FILAS.map((f) => ({ ...f, riesgoRetraso: null }));
+    dibujar([
+      tablero(respuesta({ indicadores: { obrasRiesgoAlto: null }, obras: sinIa }), [
+        noDisponible('ia', 'indicadores', 'obrasRiesgoAlto'),
+        ...sinIa.map((_, i) => noDisponible('ia', 'obras', i, 'riesgoRetraso')),
+      ]),
+    ]);
+
+    const riesgoAlto = await tarjeta('Riesgo alto (modelo)');
+    expect(riesgoAlto.getByText('—')).toBeTruthy();
+    expect(riesgoAlto.getByText('Datos de IA no disponibles')).toBeTruthy();
+    expect((await tarjeta('Obras en riesgo')).getByText('1')).toBeTruthy();
+    const filas = await filasTabla();
+    for (const f of filas) expect(within(f).getByLabelText('Datos de IA no disponibles').textContent).toBe('—');
+    expect(within(filas[0]).getByText('En riesgo')).toBeTruthy();
+    expect(screen.getByRole('alert').textContent).toBe('Datos de IA no disponibles');
   });
 
   it('residente no ve el indicador de cobros vencidos (criterio 1)', async () => {
