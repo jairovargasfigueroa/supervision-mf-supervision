@@ -9,10 +9,19 @@ import { porcentajeRiesgo } from './ChipRiesgo';
 import { useModeloRiesgo, type ModeloRiesgo } from './riesgo.graphql';
 
 // Panel «Sobre el modelo» de la pantalla «Riesgo de retraso» (402, criterio 9): versión, fecha de entrenamiento,
-// métricas sobre el 20 % de prueba, origen de los datos y el aviso de que es una estimación de apoyo.
+// métricas sobre el 20 % de prueba, origen de los datos y el aviso de que es una estimación de apoyo, distinto según
+// el modelo se entrenó con datos sintéticos o reales.
 
 export const AVISO_DATOS_SINTETICOS =
   'Modelo entrenado con datos sintéticos; es una estimación de apoyo, no reemplaza la revisión de la obra';
+
+export const AVISO_DATOS_REALES =
+  'Modelo entrenado con datos reales; es una estimación de apoyo, no reemplaza la revisión de la obra';
+
+/** Aviso del criterio 9 según el origen de los datos del modelo (`SINTETICOS` o `REALES`). */
+export function avisoModelo(datos: string): string {
+  return datos === 'REALES' ? AVISO_DATOS_REALES : AVISO_DATOS_SINTETICOS;
+}
 
 /** Advertencia del diseño de la 402 («Métricas mínimas»), que se repite en la pantalla. */
 export const ADVERTENCIA_METRICAS =
@@ -38,7 +47,7 @@ function Contenido({ modelo }: { modelo: ModeloRiesgo }) {
   return (
     <>
       <Alert severity="info" sx={{ mb: 2 }}>
-        {AVISO_DATOS_SINTETICOS}
+        {avisoModelo(modelo.datos)}
       </Alert>
       <Box
         component="dl"
@@ -59,9 +68,12 @@ function Contenido({ modelo }: { modelo: ModeloRiesgo }) {
         <Dato etiqueta="Precisión (Alto)" valor={decimal(metricas.precisionAlto)} />
         <Dato etiqueta="Brier" valor={decimal(metricas.brier)} />
       </Box>
-      <Typography variant="caption" component="p" sx={{ mt: 2, color: 'text.secondary' }}>
-        {ADVERTENCIA_METRICAS}
-      </Typography>
+      {/* La advertencia habla de relaciones simuladas: solo vale para el modelo entrenado con datos sintéticos */}
+      {modelo.datos !== 'REALES' && (
+        <Typography variant="caption" component="p" sx={{ mt: 2, color: 'text.secondary' }}>
+          {ADVERTENCIA_METRICAS}
+        </Typography>
+      )}
     </>
   );
 }
