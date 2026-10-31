@@ -21,7 +21,7 @@ function cifra(dato: Dato<number>) {
   return 'valor' in dato ? { valor: formatearCantidad(dato.valor) } : { valor: null, aviso: dato.aviso };
 }
 
-// Tablero de obras (009): cuatro indicadores y la tabla de obras en ejecución; se pide al abrir la pantalla y con
+// Tablero de obras (009): indicadores (con «Riesgo alto (modelo)», 402) y la tabla de obras en ejecución; se pide al abrir la pantalla y con
 // «Actualizar». Lo que un servicio no entrega se ve como «—» con su aviso y el resto se ve normal (criterio 5).
 export function TableroPagina() {
   const consulta = useTablero();
@@ -41,8 +41,9 @@ export function TableroPagina() {
         </Paper>
       ) : null;
     }
-    const { obrasEnEjecucion, obrasEnRiesgo, materialesBajos, cobrosVencidos, obras } = visible;
+    const { obrasEnEjecucion, obrasEnRiesgo, materialesBajos, cobrosVencidos, obrasRiesgoAlto, obras } = visible;
     const hay = (dato: Dato<number>) => 'valor' in dato && dato.valor > 0;
+    const tarjetas = cobrosVencidos ? 5 : 4;
     return (
       <>
         <Box
@@ -50,7 +51,12 @@ export function TableroPagina() {
             display: 'grid',
             gap: 2,
             mb: 2,
-            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: `repeat(${cobrosVencidos ? 4 : 3}, 1fr)` },
+            gridTemplateColumns: {
+              xs: '1fr',
+              sm: 'repeat(2, 1fr)',
+              md: 'repeat(3, 1fr)',
+              lg: `repeat(${tarjetas}, 1fr)`,
+            },
           }}
         >
           <TarjetaIndicador titulo="Obras en ejecución" {...cifra(obrasEnEjecucion)} />
@@ -75,6 +81,12 @@ export function TableroPagina() {
             ) : (
               <TarjetaIndicador titulo="Cobros vencidos" valor={null} aviso={cobrosVencidos.aviso} />
             ))}
+          {/* 402: obras en nivel ALTO según el modelo; otra señal que «Obras en riesgo» (la regla) */}
+          <TarjetaIndicador
+            titulo="Riesgo alto (modelo)"
+            {...cifra(obrasRiesgoAlto)}
+            tono={hay(obrasRiesgoAlto) ? 'error' : undefined}
+          />
         </Box>
 
         <Paper variant="outlined">
@@ -83,14 +95,18 @@ export function TableroPagina() {
           </Typography>
           {'valor' in obras ? (
             <>
-              {visible.avisoMaterialesFilas && (
-                <Alert severity="warning" sx={{ mx: 2, mb: 1 }}>
-                  {visible.avisoMaterialesFilas}
-                </Alert>
+              {[visible.avisoMaterialesFilas, visible.avisoRiesgoFilas].map(
+                (aviso) =>
+                  aviso && (
+                    <Alert key={aviso} severity="warning" sx={{ mx: 2, mb: 1 }}>
+                      {aviso}
+                    </Alert>
+                  ),
               )}
               <TablaObras
                 filas={obras.valor}
                 avisoMateriales={visible.avisoMaterialesFilas}
+                avisoRiesgo={visible.avisoRiesgoFilas}
                 alPulsarObra={(fila) => irAlErp(rutaDetalleObra(fila.obraId))}
               />
             </>

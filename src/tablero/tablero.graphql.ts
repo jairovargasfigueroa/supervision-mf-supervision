@@ -11,6 +11,24 @@ export interface PlanillaCorta {
   estado: EstadoPlanilla;
 }
 
+/** Nivel del riesgo de retraso del modelo (402): BAJO < 30 % ≤ MEDIO < 60 % ≤ ALTO. */
+export type NivelRiesgo = 'BAJO' | 'MEDIO' | 'ALTO' | 'SIN_DATOS';
+
+export interface FactorRiesgo {
+  variable: string;
+  descripcion: string;
+  peso: number;
+}
+
+/** Predicción del modelo (402); `probabilidad` de 0 a 1, null con SIN_DATOS. */
+export interface RiesgoRetraso {
+  probabilidad: number | null;
+  nivel: NivelRiesgo;
+  factores: FactorRiesgo[];
+  versionModelo: string | null;
+  calculadaEn: string | null;
+}
+
 export interface ResumenMonto {
   cantidad: number;
   monto: number;
@@ -22,6 +40,8 @@ export interface IndicadoresTablero {
   materialesBajos: number | null;
   /** Finanzas; null sin error si el rol no es admin ni gerente. */
   cobrosVencidos: ResumenMonto | null;
+  /** IA (402); null si no responde. */
+  obrasRiesgoAlto: number | null;
 }
 
 export interface FilaTablero {
@@ -35,6 +55,8 @@ export interface FilaTablero {
   /** Materiales; null si no responde. */
   materialesBajos: number | null;
   ultimaPlanilla: PlanillaCorta | null;
+  /** IA (402); null si no responde. */
+  riesgoRetraso: RiesgoRetraso | null;
 }
 
 export interface Tablero {
@@ -53,6 +75,7 @@ export const TABLERO: TypedDocumentNode<{ tablero: Tablero }, Record<string, nev
           cantidad
           monto
         }
+        obrasRiesgoAlto
       }
       obras {
         obraId
@@ -65,6 +88,17 @@ export const TABLERO: TypedDocumentNode<{ tablero: Tablero }, Record<string, nev
         ultimaPlanilla {
           periodo
           estado
+        }
+        riesgoRetraso {
+          probabilidad
+          nivel
+          factores {
+            variable
+            descripcion
+            peso
+          }
+          versionModelo
+          calculadaEn
         }
       }
     }

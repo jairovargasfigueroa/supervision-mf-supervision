@@ -6,10 +6,11 @@ import { EstadoChip, type TonoEstado } from '../compartido/EstadoChip';
 import { EstadoVacio } from '../compartido/EstadoVacio';
 import { ayudanteColumnas, TablaDatos } from '../compartido/TablaDatos';
 import { formatearCantidad, formatearPorcentaje } from '../nucleo/formato';
+import { ChipRiesgo, ordenRiesgo } from '../riesgo/ChipRiesgo';
 import type { EstadoPlanilla, FilaTablero } from './tablero.graphql';
 
 // Tabla de obras en ejecución del tablero (009, criterios 2 a 4): se abre ordenada por diferencia
-// (plazo − avance) de mayor a menor y se puede ordenar por cualquier columna.
+// (plazo − avance) de mayor a menor y se puede ordenar por cualquier columna, también por «Riesgo (modelo)» (402).
 
 /** Estado de la planilla como chip (docs/diseno-visual.md, «Estados del dominio → color»). */
 export const PLANILLA: Record<EstadoPlanilla, { etiqueta: string; tono: TonoEstado }> = {
@@ -30,9 +31,11 @@ interface Props {
   alPulsarObra?: (fila: FilaTablero) => void;
   /** Aviso de las celdas de materiales bajos que llegaron sin dato (criterio 5). */
   avisoMateriales?: string;
+  /** Aviso de las celdas de riesgo del modelo que llegaron sin dato (402, criterio 12). */
+  avisoRiesgo?: string;
 }
 
-export function TablaObras({ filas, alPulsarObra, avisoMateriales }: Props) {
+export function TablaObras({ filas, alPulsarObra, avisoMateriales, avisoRiesgo }: Props) {
   const columnas = useMemo(
     () => [
       columna.accessor('nombre', {
@@ -96,8 +99,15 @@ export function TablaObras({ filas, alPulsarObra, avisoMateriales }: Props) {
         sortFn: 'basic',
         cell: ({ row: { original: f } }) => (f.enRiesgo ? <EstadoChip etiqueta="En riesgo" tono="atencion" /> : null),
       }),
+      // 402: señal aparte de «En riesgo» (la regla); sin datos o sin IA la fila va al final de mayor a menor
+      columna.accessor((f) => ordenRiesgo(f.riesgoRetraso), {
+        id: 'riesgoRetraso',
+        header: 'Riesgo (modelo)',
+        sortFn: 'basic',
+        cell: ({ row: { original: f } }) => <ChipRiesgo riesgo={f.riesgoRetraso} aviso={avisoRiesgo} />,
+      }),
     ],
-    [avisoMateriales],
+    [avisoMateriales, avisoRiesgo],
   );
 
   return (

@@ -6,7 +6,7 @@
 |---|---|---|---|
 | Tablero de obras (avance, plazo, alertas; cobros vencidos solo administración y gerente) | Administración, gerente, residente (sus obras) | Consultar tablero | Base |
 | Dictado (prueba del componente de voz a texto) | Administración, gerente, residente | Voz a texto en el navegador | Capa 3 |
-| Riesgo de retraso por obra | Administración, gerente, residente (sus obras) | Predicciones | Capa 4 |
+| Riesgo de retraso por obra (`/supervision/riesgo`, spec 402; enlace «Riesgo de retraso» en el menú interno) | Administración, gerente, residente (sus obras) | Predicciones | Capa 4 |
 | Agentes: últimos informes y sugerencias para aprobar o rechazar («Ejecutar ahora» e historial: administración y gerente; el residente no ve Control de cobros) | Administración, gerente, residente (sus obras) | Agentes | Capa 5 |
 | Reportes por voz: hablar, ver la tabla, exportar a Excel | Administración, gerente | Reportes generativos | Capa 5 |
 
