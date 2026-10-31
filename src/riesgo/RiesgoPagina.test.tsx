@@ -46,6 +46,7 @@ const fila = (obraId: string, nombre: string, riesgoRetraso: ReturnType<typeof r
   materialesBajos: 0,
   ultimaPlanilla: null,
   riesgoRetraso,
+  consumosAtipicosPendientes: 0,
 });
 
 // Llegan sin ordenar
@@ -72,6 +73,7 @@ const respuestaTablero = (obras: ReturnType<typeof fila>[] = FILAS) => ({
       materialesBajos: 0,
       cobrosVencidos: { __typename: 'ResumenMonto', cantidad: 0, monto: 0 },
       obrasRiesgoAlto: 1,
+      consumosAtipicosPendientes: 0,
     },
     obras,
   },

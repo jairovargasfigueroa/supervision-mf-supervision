@@ -42,6 +42,8 @@ export interface IndicadoresTablero {
   cobrosVencidos: ResumenMonto | null;
   /** IA (402); null si no responde. */
   obrasRiesgoAlto: number | null;
+  /** IA (403): consumos atípicos PENDIENTE en las obras del usuario; null si no responde. */
+  consumosAtipicosPendientes: number | null;
 }
 
 export interface FilaTablero {
@@ -57,6 +59,8 @@ export interface FilaTablero {
   ultimaPlanilla: PlanillaCorta | null;
   /** IA (402); null si no responde. */
   riesgoRetraso: RiesgoRetraso | null;
+  /** IA (403): consumos atípicos PENDIENTE de la obra; null si no responde. */
+  consumosAtipicosPendientes: number | null;
 }
 
 export interface Tablero {
@@ -76,6 +80,7 @@ export const TABLERO: TypedDocumentNode<{ tablero: Tablero }, Record<string, nev
           monto
         }
         obrasRiesgoAlto
+        consumosAtipicosPendientes
       }
       obras {
         obraId
@@ -100,6 +105,7 @@ export const TABLERO: TypedDocumentNode<{ tablero: Tablero }, Record<string, nev
           versionModelo
           calculadaEn
         }
+        consumosAtipicosPendientes
       }
     }
   }

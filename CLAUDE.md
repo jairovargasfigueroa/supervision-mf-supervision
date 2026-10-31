@@ -4,7 +4,7 @@ Microfrontend del ERP para supervisión: tablero de obras (base) y, en la capa 5
 
 Parte de la «Plataforma de supervisión de obras». Si existe `../../CLAUDE.md` (carpeta que agrupa todos los proyectos), léelo primero: tiene las reglas transversales, el plan y los contratos generales.
 
-**Estado:** Native Federation configurado, tema MUI dentro del Shadow DOM, `formato.ts`, estados vacío y error, y lectura de la sesión del shell (`nucleo/sesion.ts`, `nucleo/configuracion.ts`; sin shell muestra «Abre esta pantalla desde el ERP») (fase 1); tablero de obras con Apollo Client y TanStack Router/Table (009); 104: tablero con respaldo en el almacén del shell (`useConsultaConRespaldo`, aviso «Sin conexión · datos del…»); 402: tarjeta «Riesgo alto (modelo)» y columna «Riesgo (modelo)» en el tablero, y pantalla `/supervision/riesgo` (lista por probabilidad, historial en SVG y «Sobre el modelo»). No implementes una funcionalidad sin su especificación aprobada en `docs/specs/`.
+**Estado:** Native Federation configurado, tema MUI dentro del Shadow DOM, `formato.ts`, estados vacío y error, y lectura de la sesión del shell (`nucleo/sesion.ts`, `nucleo/configuracion.ts`; sin shell muestra «Abre esta pantalla desde el ERP») (fase 1); tablero de obras con Apollo Client y TanStack Router/Table (009); 104: tablero con respaldo en el almacén del shell (`useConsultaConRespaldo`, aviso «Sin conexión · datos del…»); 402: tarjeta «Riesgo alto (modelo)» y columna «Riesgo (modelo)» en el tablero, y pantalla `/supervision/riesgo` (lista por probabilidad, historial en SVG y «Sobre el modelo»); 403: tarjeta «Consumos atípicos por revisar» y columna «Atípicos» en el tablero. No implementes una funcionalidad sin su especificación aprobada en `docs/specs/`.
 
 ## Stack
 
