@@ -17,11 +17,15 @@ export interface TableroVisible {
   cobrosVencidos?: Dato<ResumenMonto>;
   /** Obras con riesgo ALTO según el modelo (402). */
   obrasRiesgoAlto: Dato<number>;
+  /** Consumos atípicos por revisar (403). */
+  consumosAtipicosPendientes: Dato<number>;
   obras: Dato<FilaTablero[]>;
   /** Aviso de la columna «Materiales bajos» si alguna fila llegó sin ese dato. */
   avisoMaterialesFilas?: string;
   /** Aviso de la columna «Riesgo (modelo)» si alguna fila llegó sin ese dato (IA no respondió, 402). */
   avisoRiesgoFilas?: string;
+  /** Aviso de la columna «Atípicos» si alguna fila llegó sin ese dato (IA no respondió, 403). */
+  avisoAtipicosFilas?: string;
 }
 
 type Ruta = readonly (string | number)[];
@@ -56,6 +60,7 @@ export function tableroVisible(tablero: Tablero, error: unknown, verCobros: bool
   const obras = tablero.obras;
   const filaSinMateriales = obras?.findIndex((f) => f.materialesBajos === null) ?? -1;
   const filaSinRiesgo = obras?.findIndex((f) => f.riesgoRetraso === null) ?? -1;
+  const filaSinAtipicos = obras?.findIndex((f) => f.consumosAtipicosPendientes === null) ?? -1;
   const avisoFila = (indice: number, campo: string, dueno: Servicio) =>
     indice < 0
       ? undefined
@@ -69,8 +74,15 @@ export function tableroVisible(tablero: Tablero, error: unknown, verCobros: bool
       ? dato(ind?.cobrosVencidos, [...rutaInd, 'cobrosVencidos'], 'finanzas', errores)
       : undefined,
     obrasRiesgoAlto: dato(ind?.obrasRiesgoAlto, [...rutaInd, 'obrasRiesgoAlto'], 'ia', errores),
+    consumosAtipicosPendientes: dato(
+      ind?.consumosAtipicosPendientes,
+      [...rutaInd, 'consumosAtipicosPendientes'],
+      'ia',
+      errores,
+    ),
     obras: dato(obras, ['tablero', 'obras'], 'obras', errores),
     avisoMaterialesFilas: avisoFila(filaSinMateriales, 'materialesBajos', 'materiales'),
     avisoRiesgoFilas: avisoFila(filaSinRiesgo, 'riesgoRetraso', 'ia'),
+    avisoAtipicosFilas: avisoFila(filaSinAtipicos, 'consumosAtipicosPendientes', 'ia'),
   };
 }

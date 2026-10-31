@@ -13,6 +13,7 @@ const FILA: FilaTablero = {
   materialesBajos: 0,
   ultimaPlanilla: null,
   riesgoRetraso: { probabilidad: 0.2, nivel: 'BAJO', factores: [], versionModelo: 'rr-1.0.0', calculadaEn: null },
+  consumosAtipicosPendientes: 2,
 };
 
 const COMPLETO: Tablero = {
@@ -22,6 +23,7 @@ const COMPLETO: Tablero = {
     materialesBajos: 1,
     cobrosVencidos: { cantidad: 1, monto: 10 },
     obrasRiesgoAlto: 0,
+    consumosAtipicosPendientes: 2,
   },
   obras: [FILA],
 };
@@ -104,6 +106,24 @@ describe('tableroVisible', () => {
   it('sin error, un riesgo en null también se atribuye a IA (dueño del campo)', () => {
     const visible = tableroVisible({ ...COMPLETO, obras: [{ ...FILA, riesgoRetraso: null }] }, undefined, true);
     expect(visible.avisoRiesgoFilas).toBe('Datos de IA no disponibles');
+    expect(visible.obrasRiesgoAlto).toEqual({ valor: 0 });
+  });
+
+  it('IA caída: «Consumos atípicos por revisar» y la columna «Atípicos» avisan «Datos de IA no disponibles» (403, criterio 12)', () => {
+    const visible = tableroVisible(
+      {
+        indicadores: { ...COMPLETO.indicadores!, consumosAtipicosPendientes: null },
+        obras: [{ ...FILA, consumosAtipicosPendientes: null }],
+      },
+      errores(
+        { path: ['tablero', 'indicadores', 'consumosAtipicosPendientes'], servicio: 'ia' },
+        { path: ['tablero', 'obras', 0, 'consumosAtipicosPendientes'], servicio: 'ia' },
+      ),
+      true,
+    );
+    expect(visible.consumosAtipicosPendientes).toEqual({ aviso: 'Datos de IA no disponibles' });
+    expect(visible.avisoAtipicosFilas).toBe('Datos de IA no disponibles');
+    expect(visible.avisoRiesgoFilas).toBeUndefined();
     expect(visible.obrasRiesgoAlto).toEqual({ valor: 0 });
   });
 });

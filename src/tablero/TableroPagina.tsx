@@ -21,7 +21,8 @@ function cifra(dato: Dato<number>) {
   return 'valor' in dato ? { valor: formatearCantidad(dato.valor) } : { valor: null, aviso: dato.aviso };
 }
 
-// Tablero de obras (009): indicadores (con «Riesgo alto (modelo)», 402) y la tabla de obras en ejecución; se pide al abrir la pantalla y con
+// Tablero de obras (009): indicadores (con «Riesgo alto (modelo)», 402, y «Consumos atípicos por revisar», 403) y la
+// tabla de obras en ejecución; se pide al abrir la pantalla y con
 // «Actualizar». Lo que un servicio no entrega se ve como «—» con su aviso y el resto se ve normal (criterio 5).
 export function TableroPagina() {
   const consulta = useTablero();
@@ -41,9 +42,17 @@ export function TableroPagina() {
         </Paper>
       ) : null;
     }
-    const { obrasEnEjecucion, obrasEnRiesgo, materialesBajos, cobrosVencidos, obrasRiesgoAlto, obras } = visible;
+    const {
+      obrasEnEjecucion,
+      obrasEnRiesgo,
+      materialesBajos,
+      cobrosVencidos,
+      obrasRiesgoAlto,
+      consumosAtipicosPendientes,
+      obras,
+    } = visible;
     const hay = (dato: Dato<number>) => 'valor' in dato && dato.valor > 0;
-    const tarjetas = cobrosVencidos ? 5 : 4;
+    const tarjetas = cobrosVencidos ? 6 : 5;
     return (
       <>
         <Box
@@ -55,7 +64,8 @@ export function TableroPagina() {
               xs: '1fr',
               sm: 'repeat(2, 1fr)',
               md: 'repeat(3, 1fr)',
-              lg: `repeat(${tarjetas}, 1fr)`,
+              lg: `repeat(${Math.ceil(tarjetas / 2)}, 1fr)`,
+              xl: `repeat(${tarjetas}, 1fr)`,
             },
           }}
         >
@@ -87,6 +97,12 @@ export function TableroPagina() {
             {...cifra(obrasRiesgoAlto)}
             tono={hay(obrasRiesgoAlto) ? 'error' : undefined}
           />
+          {/* 403: suma de los consumos atípicos PENDIENTE de las obras del usuario */}
+          <TarjetaIndicador
+            titulo="Consumos atípicos por revisar"
+            {...cifra(consumosAtipicosPendientes)}
+            tono={hay(consumosAtipicosPendientes) ? 'atencion' : undefined}
+          />
         </Box>
 
         <Paper variant="outlined">
@@ -95,7 +111,8 @@ export function TableroPagina() {
           </Typography>
           {'valor' in obras ? (
             <>
-              {[visible.avisoMaterialesFilas, visible.avisoRiesgoFilas].map(
+              {/* Un aviso por servicio: Materiales, y una sola vez IA aunque falten el riesgo y los atípicos */}
+              {[...new Set([visible.avisoMaterialesFilas, visible.avisoRiesgoFilas, visible.avisoAtipicosFilas])].map(
                 (aviso) =>
                   aviso && (
                     <Alert key={aviso} severity="warning" sx={{ mx: 2, mb: 1 }}>
@@ -107,6 +124,7 @@ export function TableroPagina() {
                 filas={obras.valor}
                 avisoMateriales={visible.avisoMaterialesFilas}
                 avisoRiesgo={visible.avisoRiesgoFilas}
+                avisoAtipicos={visible.avisoAtipicosFilas}
                 alPulsarObra={(fila) => irAlErp(rutaDetalleObra(fila.obraId))}
               />
             </>

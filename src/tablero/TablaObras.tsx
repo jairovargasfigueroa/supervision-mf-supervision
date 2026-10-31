@@ -33,9 +33,11 @@ interface Props {
   avisoMateriales?: string;
   /** Aviso de las celdas de riesgo del modelo que llegaron sin dato (402, criterio 12). */
   avisoRiesgo?: string;
+  /** Aviso de las celdas de consumos atípicos que llegaron sin dato (403, criterio 12). */
+  avisoAtipicos?: string;
 }
 
-export function TablaObras({ filas, alPulsarObra, avisoMateriales, avisoRiesgo }: Props) {
+export function TablaObras({ filas, alPulsarObra, avisoMateriales, avisoRiesgo, avisoAtipicos }: Props) {
   const columnas = useMemo(
     () => [
       columna.accessor('nombre', {
@@ -106,8 +108,23 @@ export function TablaObras({ filas, alPulsarObra, avisoMateriales, avisoRiesgo }
         sortFn: 'basic',
         cell: ({ row: { original: f } }) => <ChipRiesgo riesgo={f.riesgoRetraso} aviso={avisoRiesgo} />,
       }),
+      // 403: consumos atípicos PENDIENTE de la obra; al pulsar la fila (también el número) se abre el detalle
+      columna.accessor((f) => f.consumosAtipicosPendientes ?? -1, {
+        id: 'consumosAtipicosPendientes',
+        header: 'Atípicos',
+        sortFn: 'basic',
+        meta: { numerica: true },
+        cell: ({ row: { original: f } }) =>
+          f.consumosAtipicosPendientes === null ? (
+            <Box component="span" title={avisoAtipicos} aria-label={avisoAtipicos}>
+              —
+            </Box>
+          ) : (
+            formatearCantidad(f.consumosAtipicosPendientes)
+          ),
+      }),
     ],
-    [avisoMateriales, avisoRiesgo],
+    [avisoMateriales, avisoRiesgo, avisoAtipicos],
   );
 
   return (

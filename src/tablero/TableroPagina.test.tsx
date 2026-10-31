@@ -41,12 +41,14 @@ const riesgo = (probabilidad: number | null, nivel: NivelRiesgo, factores: strin
 });
 
 const fila = (
-  f: Omit<FilaTablero, 'ultimaPlanilla' | 'riesgoRetraso'> & {
+  f: Omit<FilaTablero, 'ultimaPlanilla' | 'riesgoRetraso' | 'consumosAtipicosPendientes'> & {
     ultimaPlanilla?: FilaTablero['ultimaPlanilla'];
     riesgoRetraso?: ReturnType<typeof riesgo> | null;
+    consumosAtipicosPendientes?: number | null;
   },
 ) => ({
   __typename: 'FilaTablero',
+  consumosAtipicosPendientes: 0,
   ...f,
   ultimaPlanilla: f.ultimaPlanilla ? { __typename: 'PlanillaCorta', ...f.ultimaPlanilla } : null,
   riesgoRetraso: f.riesgoRetraso === undefined ? riesgo(null, 'SIN_DATOS') : f.riesgoRetraso,
@@ -72,6 +74,7 @@ const FILAS = [
     materialesBajos: 0,
     ultimaPlanilla: { periodo: '2026-09', estado: 'PRESENTADA' },
     riesgoRetraso: riesgo(0.2849, 'BAJO'),
+    consumosAtipicosPendientes: 2,
   }),
   fila({
     obraId: OBRA_2,
@@ -83,6 +86,7 @@ const FILAS = [
     materialesBajos: 1,
     ultimaPlanilla: { periodo: '2026-09', estado: 'OBSERVADA' },
     riesgoRetraso: riesgo(0.72, 'ALTO', ['El avance es de solo 16,3 %']),
+    consumosAtipicosPendientes: 1,
   }),
 ];
 
@@ -92,6 +96,7 @@ const INDICADORES: IndicadoresTablero = {
   materialesBajos: 1,
   cobrosVencidos: { cantidad: 1, monto: 290134.8 },
   obrasRiesgoAlto: 1,
+  consumosAtipicosPendientes: 3,
 };
 
 type Respuesta = {
@@ -229,7 +234,7 @@ describe('TableroPagina', () => {
     dibujar([tablero()]);
     const riesgoAlto = await tarjeta('Riesgo alto (modelo)');
     expect(riesgoAlto.getByText('1')).toBeTruthy();
-    expect(screen.getAllByRole('group')).toHaveLength(5);
+    expect(screen.getAllByRole('group')).toHaveLength(6);
   });
 
   it('la columna «Riesgo (modelo)» muestra chip por nivel y porcentaje, junto a «En riesgo» (402, criterios 6 y 7)', async () => {
@@ -287,6 +292,74 @@ describe('TableroPagina', () => {
     for (const f of filas) expect(within(f).getByLabelText('Datos de IA no disponibles').textContent).toBe('—');
     expect(within(filas[0]).getByText('En riesgo')).toBeTruthy();
     expect(screen.getByRole('alert').textContent).toBe('Datos de IA no disponibles');
+  });
+
+  it('muestra la tarjeta «Consumos atípicos por revisar» con la suma de pendientes (403, criterio 10)', async () => {
+    dibujar([tablero()]);
+    const atipicos = await tarjeta('Consumos atípicos por revisar');
+    expect(atipicos.getByText('3')).toBeTruthy();
+  });
+
+  it('la columna «Atípicos» muestra los pendientes de cada obra, se ordena y abre el detalle (403, criterio 10)', async () => {
+    dibujar([tablero()]);
+    const filas = await filasTabla();
+    const celdaAtipicos = (f: HTMLElement) => within(f).getAllByRole('cell')[8];
+    expect(filas.map((f) => celdaAtipicos(f).textContent)).toEqual(['1', '2', '0']);
+
+    const ordenar = () => fireEvent.click(screen.getByRole('button', { name: 'Atípicos' }));
+    ordenar();
+    const primero = nombres(await filasTabla());
+    ordenar();
+    const segundo = nombres(await filasTabla());
+    expect([primero, segundo]).toContainEqual([
+      'Edificio Las Palmeras',
+      'Condominio Las Lomas',
+      'Unidad Educativa San Martín',
+    ]);
+    expect([primero, segundo]).toContainEqual([
+      'Unidad Educativa San Martín',
+      'Condominio Las Lomas',
+      'Edificio Las Palmeras',
+    ]);
+
+    // Pulsar el número abre el detalle de la obra, como el resto de la fila
+    const palmeras = (await filasTabla()).find((f) => within(f).queryByText('Edificio Las Palmeras'))!;
+    fireEvent.click(within(celdaAtipicos(palmeras)).getByText('2'));
+    expect(window.location.pathname).toBe(`/obras/${OBRA_1}`);
+  });
+
+  it('con IA caída la tarjeta y la columna de atípicos muestran «—» con «Datos de IA no disponibles» (403, criterio 12)', async () => {
+    const sinIa = FILAS.map((f) => ({ ...f, consumosAtipicosPendientes: null }));
+    dibujar([
+      tablero(respuesta({ indicadores: { consumosAtipicosPendientes: null }, obras: sinIa }), [
+        noDisponible('ia', 'indicadores', 'consumosAtipicosPendientes'),
+        ...sinIa.map((_, i) => noDisponible('ia', 'obras', i, 'consumosAtipicosPendientes')),
+      ]),
+    ]);
+
+    const atipicos = await tarjeta('Consumos atípicos por revisar');
+    expect(atipicos.getByText('—')).toBeTruthy();
+    expect(atipicos.getByText('Datos de IA no disponibles')).toBeTruthy();
+    expect((await tarjeta('Riesgo alto (modelo)')).getByText('1')).toBeTruthy();
+    const filas = await filasTabla();
+    for (const f of filas) expect(within(f).getByLabelText('Datos de IA no disponibles').textContent).toBe('—');
+    expect(screen.getByRole('alert').textContent).toBe('Datos de IA no disponibles');
+  });
+
+  it('con IA caída del todo el aviso de la tabla sale una sola vez', async () => {
+    const sinIa = FILAS.map((f) => ({ ...f, riesgoRetraso: null, consumosAtipicosPendientes: null }));
+    dibujar([
+      tablero(respuesta({ indicadores: { obrasRiesgoAlto: null, consumosAtipicosPendientes: null }, obras: sinIa }), [
+        noDisponible('ia', 'indicadores', 'obrasRiesgoAlto'),
+        noDisponible('ia', 'indicadores', 'consumosAtipicosPendientes'),
+        ...sinIa.flatMap((_, i) => [
+          noDisponible('ia', 'obras', i, 'riesgoRetraso'),
+          noDisponible('ia', 'obras', i, 'consumosAtipicosPendientes'),
+        ]),
+      ]),
+    ]);
+    await filasTabla();
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
   });
 
   it('residente no ve el indicador de cobros vencidos (criterio 1)', async () => {
