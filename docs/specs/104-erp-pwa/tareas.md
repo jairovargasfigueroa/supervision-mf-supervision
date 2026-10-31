@@ -5,4 +5,4 @@ Requisitos y diseño: `docs/specs/104-erp-pwa/` de la carpeta que agrupa los pro
 Marca cada tarea al terminarla (con sus pruebas y su commit).
 
 - [x] *Hook* `useConsultaConRespaldo` y componente de aviso (dentro del Shadow DOM)
-- [ ] Usarlo en la consulta `tablero`; pruebas con datos guardados y sin datos
+- [x] Usarlo en la consulta `tablero`; pruebas con datos guardados y sin datos

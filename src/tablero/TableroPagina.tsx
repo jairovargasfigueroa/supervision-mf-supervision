@@ -6,6 +6,7 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import { AvisoSinConexion } from '../compartido/AvisoSinConexion';
 import { EstadoError } from '../compartido/EstadoError';
 import { formatearCantidad, formatearMonto } from '../nucleo/formato';
 import { irAlErp, rutaDetalleObra } from '../nucleo/navegacion';
@@ -23,7 +24,8 @@ function cifra(dato: Dato<number>) {
 // Tablero de obras (009): cuatro indicadores y la tabla de obras en ejecución; se pide al abrir la pantalla y con
 // «Actualizar». Lo que un servicio no entrega se ve como «—» con su aviso y el resto se ve normal (criterio 5).
 export function TableroPagina() {
-  const { data, error, loading, refetch } = useTablero();
+  const consulta = useTablero();
+  const { data, error, loading, refetch } = consulta;
   const verCobros = usePuedeVerCobros();
   const tablero = data?.tablero;
   const visible = tablero && tableroVisible(tablero, error, verCobros);
@@ -119,7 +121,19 @@ export function TableroPagina() {
       </Stack>
 
       <Box sx={{ height: 4, mb: 2 }}>{loading && <LinearProgress aria-label="Cargando tablero" />}</Box>
-      {contenido()}
+      {/* 104: tablero guardado en el equipo con su fecha, o que nunca se abrió en este equipo */}
+      {consulta.desdeEquipo && (
+        <Box sx={{ mb: 2 }}>
+          <AvisoSinConexion consulta={consulta} />
+        </Box>
+      )}
+      {consulta.sinDatosGuardados ? (
+        <Paper variant="outlined">
+          <AvisoSinConexion consulta={consulta} />
+        </Paper>
+      ) : (
+        contenido()
+      )}
     </Box>
   );
 }

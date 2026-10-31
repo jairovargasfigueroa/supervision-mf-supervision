@@ -1,5 +1,5 @@
 import { gql, type TypedDocumentNode } from '@apollo/client';
-import { useQuery } from '@apollo/client/react';
+import { useConsultaConRespaldo } from '../nucleo/consulta-respaldo';
 
 // Consulta del tablero (009; docs/contratos.md: tablero). El gateway resuelve cada parte por separado: si un
 // servicio no responde, solo sus campos llegan en null con SERVICIO_NO_DISPONIBLE y el resto llega normal.
@@ -73,8 +73,9 @@ export const TABLERO: TypedDocumentNode<{ tablero: Tablero }, Record<string, nev
 
 /**
  * Tablero al abrir la pantalla (y con `refetch`, el botón «Actualizar»). `errorPolicy: 'all'` entrega a la vez los
- * datos que llegaron y los errores de las partes que fallaron.
+ * datos que llegaron y los errores de las partes que fallaron. La respuesta completa se guarda en el equipo y, sin
+ * conexión o si el gateway no responde, se muestra la guardada (104); una parcial se muestra pero no se guarda.
  */
 export function useTablero() {
-  return useQuery(TABLERO, { errorPolicy: 'all', notifyOnNetworkStatusChange: true });
+  return useConsultaConRespaldo(TABLERO, { errorPolicy: 'all', notifyOnNetworkStatusChange: true });
 }
