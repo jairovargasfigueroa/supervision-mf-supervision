@@ -12,7 +12,12 @@ const MENSAJES: Record<string, string> = {
   ERROR_INTERNO: 'Ocurrió un error inesperado. Intenta de nuevo; si se repite, avisa a soporte.',
   SERVICIO_NO_DISPONIBLE: 'Este servicio no está disponible por el momento. Intenta de nuevo en unos minutos.',
   TIEMPO_AGOTADO: 'El servidor tardó demasiado en responder. Intenta de nuevo.',
+  // 402
+  MODELO_NO_DISPONIBLE: 'El modelo de riesgo no está disponible por el momento.',
 };
+
+/** Panel «Sobre el modelo» sin modelo cargado en IA (MODELO_NO_DISPONIBLE, 402). */
+export const MENSAJE_MODELO_NO_DISPONIBLE = MENSAJES['MODELO_NO_DISPONIBLE'];
 
 const SIN_CONEXION = 'No hay conexión con el servidor. Revisa tu conexión a internet e intenta de nuevo.';
 

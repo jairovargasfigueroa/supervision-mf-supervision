@@ -16,7 +16,8 @@ src/
   nucleo/       sesion.ts, configuracion.ts, apollo.ts, errores.ts, formato.ts, permisos.ts, navegacion.ts,
                 conexion.ts, consulta-respaldo.ts
   tablero/      TableroPagina.tsx, TarjetaIndicador.tsx, TablaObras.tsx, tablero.graphql.ts, datos-parciales.ts
-  riesgo/       ChipRiesgo.tsx (402: nivel del modelo como chip y porcentaje)
+  riesgo/       RiesgoPagina.tsx, ChipRiesgo.tsx (nivel del modelo como chip y porcentaje), GraficoHistorial.tsx
+                (SVG propio), PanelModelo.tsx («Sobre el modelo»), riesgo.graphql.ts (402)
   compartido/   TablaDatos.tsx, EstadoChip.tsx, EstadoVacio.tsx, EstadoError.tsx, AvisoSinConexion.tsx
 ```
 
@@ -29,4 +30,4 @@ src/
 
 ## Rutas
 
-TanStack Router con `createBrowserHistory()` y `basepath: '/supervision'`: `/supervision` es el tablero (009); cualquier otra ruta muestra el aviso con «Ir al tablero». El historial del navegador de TanStack intercepta `pushState`; `App.tsx` lo destruye al desmontar. Para ir a otra área se usa `irAlErp()` de `nucleo/navegacion.ts`.
+TanStack Router con `createBrowserHistory()` y `basepath: '/supervision'`: `/supervision` es el tablero (009) y `/supervision/riesgo` el riesgo de retraso (402), con pestañas «Tablero» y «Riesgo de retraso» como menú interno (`SECCIONES` de `router.tsx`); cualquier otra ruta muestra el aviso con «Ir al tablero». El historial del navegador de TanStack intercepta `pushState`; `App.tsx` lo destruye al desmontar. Para ir a otra área se usa `irAlErp()` de `nucleo/navegacion.ts`.
