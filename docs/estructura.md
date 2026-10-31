@@ -13,10 +13,13 @@ React 19 · MUI 9 con `@emotion/cache` dentro del Shadow DOM y `tema.ts` (primar
 ```
 src/
   bootstrap.tsx, App.tsx, tema.ts, router.tsx
-  nucleo/       sesion.ts, configuracion.ts, apollo.ts, errores.ts, formato.ts, permisos.ts, navegacion.ts
+  nucleo/       sesion.ts, configuracion.ts, apollo.ts, errores.ts, formato.ts, permisos.ts, navegacion.ts,
+                conexion.ts, consulta-respaldo.ts
   tablero/      TableroPagina.tsx, TarjetaIndicador.tsx, TablaObras.tsx, tablero.graphql.ts, datos-parciales.ts
-  compartido/   TablaDatos.tsx, EstadoChip.tsx, EstadoVacio.tsx, EstadoError.tsx
+  compartido/   TablaDatos.tsx, EstadoChip.tsx, EstadoVacio.tsx, EstadoError.tsx, AvisoSinConexion.tsx
 ```
+
+- `nucleo/conexion.ts` y `nucleo/consulta-respaldo.ts` (104): iguales que en mf-materiales; `useConsultaConRespaldo` pide a la red con `network-only` y guarda la respuesta completa en el almacén del shell; sin conexión o ante un fallo de red muestra lo guardado. `compartido/AvisoSinConexion.tsx`: «Sin conexión · datos del dd/mm/aaaa hh:mm» o «No hay datos guardados de esta pantalla».
 
 - `nucleo/permisos.ts`: roles efectivos del ERP (solo los internos) y qué ve cada rol (cobros vencidos: `admin` y `gerente`).
 - `nucleo/navegacion.ts`: ir a otra área del ERP (`pushState` + `popstate`, por ejemplo `/obras/:id`).

@@ -12,6 +12,8 @@
 
 Los informes de cada agente también se muestran dentro de su área (Obras, Materiales); aquí va el resumen.
 
+Sin conexión (104): el tablero muestra la última respuesta completa guardada en el equipo con «Sin conexión · datos del dd/mm/aaaa hh:mm», o «No hay datos guardados de esta pantalla» si nunca se abrió en ese navegador.
+
 ## Qué no hace
 
 - No ejecuta acciones sugeridas por los agentes sin aprobación de una persona.

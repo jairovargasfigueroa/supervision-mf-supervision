@@ -129,6 +129,71 @@ const filasTabla = async () => {
 
 const nombres = (filas: HTMLElement[]) => filas.map((f) => within(f).getAllByRole('cell')[0].textContent);
 
+describe('TableroPagina sin conexión (104)', () => {
+  const CLAVE = 'Tablero:{}';
+
+  /** Publica la conexión y un almacén en memoria como los del shell. */
+  function conShell(enLinea: boolean, guardadas: Record<string, unknown> = {}) {
+    const consultas = new Map(
+      Object.entries(guardadas).map(([clave, datos]) => [clave, { datos, guardadoEn: '2026-10-30T18:05:00.000Z' }]),
+    );
+    const almacen = {
+      guardarConsulta: vi.fn(async (clave: string, datos: unknown) => {
+        consultas.set(clave, { datos, guardadoEn: new Date().toISOString() });
+      }),
+      leerConsulta: vi.fn(async (clave: string) => consultas.get(clave) ?? null),
+    };
+    const conexion = { enLinea, reportarFallo: vi.fn() };
+    window.plataforma = { ...window.plataforma!, conexion, almacen: almacen as never };
+    return { almacen, conexion };
+  }
+
+  it('en línea guarda el tablero completo en el equipo', async () => {
+    const { almacen } = conShell(true);
+    dibujar([tablero()]);
+    await filasTabla();
+    await waitFor(() => expect(almacen.guardarConsulta).toHaveBeenCalledWith(CLAVE, respuesta()));
+    expect(screen.queryByText(/^Sin conexión/)).toBeNull();
+  });
+
+  it('un tablero parcial se muestra pero no se guarda', async () => {
+    const { almacen } = conShell(true);
+    dibujar([
+      tablero(respuesta({ indicadores: { materialesBajos: null } }), [
+        noDisponible('materiales', 'indicadores', 'materialesBajos'),
+      ]),
+    ]);
+    expect((await tarjeta('Obras en ejecución')).getByText('3')).toBeTruthy();
+    expect(screen.getByText('Datos de Materiales no disponibles')).toBeTruthy();
+    expect(almacen.guardarConsulta).not.toHaveBeenCalled();
+  });
+
+  it('sin conexión muestra el tablero guardado con el aviso y su fecha', async () => {
+    conShell(false, { [CLAVE]: respuesta() });
+    dibujar([]);
+    expect(nombres(await filasTabla())).toHaveLength(3);
+    expect((await tarjeta('Obras en ejecución')).getByText('3')).toBeTruthy();
+    expect(screen.getByText('Sin conexión · datos del 30/10/2026 14:05')).toBeTruthy();
+  });
+
+  it('si el gateway no responde avisa al shell y muestra el tablero guardado', async () => {
+    const { conexion } = conShell(true, { [CLAVE]: respuesta() });
+    dibujar([{ request: { query: TABLERO, variables: {} }, error: new TypeError('Failed to fetch') }]);
+    expect(await screen.findByText('Sin conexión · datos del 30/10/2026 14:05')).toBeTruthy();
+    expect(nombres(await filasTabla())).toHaveLength(3);
+    expect(screen.queryByRole('button', { name: 'Reintentar' })).toBeNull();
+    expect(conexion.reportarFallo).toHaveBeenCalledOnce();
+  });
+
+  it('sin conexión y sin tablero guardado avisa que no hay datos de esta pantalla', async () => {
+    conShell(false);
+    dibujar([]);
+    expect(await screen.findByText('No hay datos guardados de esta pantalla')).toBeTruthy();
+    expect(screen.queryByRole('table')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Reintentar' })).toBeNull();
+  });
+});
+
 describe('TableroPagina', () => {
   it('muestra los cuatro indicadores para gerente (criterio 1)', async () => {
     dibujar([tablero()]);
