@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import type { AlmacenPlataforma, ConexionPlataforma } from './conexion';
 
 // Sesión que publica el shell del ERP en window.plataforma (docs/convenciones.md,
 // «Sesión dentro del ERP»). El microfrontend nunca habla con Keycloak.
@@ -11,13 +12,19 @@ export interface UsuarioSesion {
 
 export interface SesionPlataforma {
   usuario: UsuarioSesion;
-  obtenerToken(): Promise<string>; // token vigente (lo renueva el shell)
+  obtenerToken(): Promise<string>; // token vigente (lo renueva el shell); en modo sin conexión rechaza con Error('SIN_CONEXION')
   cerrarSesion(): void;
+  /** 104: la sesión se recuperó del equipo sin conexión (`obtenerToken()` rechaza). */
+  sinConexion?: boolean;
 }
 
 export interface Plataforma {
   sesion?: SesionPlataforma;
   configuracion: { gatewayUrl: string };
+  /** 104: estado de la conexión que decide el shell. */
+  conexion?: ConexionPlataforma;
+  /** 104: almacén local del shell (IndexedDB, separado por usuario). */
+  almacen?: AlmacenPlataforma;
 }
 
 declare global {
