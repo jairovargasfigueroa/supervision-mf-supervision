@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { CombinedGraphQLErrors, ServerError } from '@apollo/client/errors';
-import { avisoNoDisponible, codigoDeError, esPedidoNoReconocido, mensajeDeError, mensajeErrorReporte } from './errores';
+import {
+  avisoNoDisponible,
+  codigoDeError,
+  erroresDeCampo,
+  esPedidoNoReconocido,
+  mensajeDeError,
+  mensajeErrorEjecucion,
+  mensajeErrorReporte,
+} from './errores';
 
 const errorGraphql = (codigo?: string) =>
   new CombinedGraphQLErrors({
@@ -57,5 +65,40 @@ describe('mensajes de reportes (503)', () => {
     expect(mensajeErrorReporte(conCodigo('SIN_PERMISO'))).toBe('No tienes permiso para hacer esta acción.');
     expect(esPedidoNoReconocido('RECETA_INVALIDA')).toBe(true);
     expect(esPedidoNoReconocido('LLM_NO_DISPONIBLE')).toBe(false);
+  });
+});
+
+describe('mensajes de agentes (502)', () => {
+  const conCodigo = (codigo: string, errores?: object[]) =>
+    new CombinedGraphQLErrors({
+      data: null,
+      errors: [{ message: 'x', extensions: { codigo, servicio: 'ia', ...(errores && { errores }) } }],
+    });
+
+  it('cada código tiene el texto de docs/mensajes.md', () => {
+    expect(mensajeDeError(conCodigo('EJECUCION_EN_CURSO'))).toBe('El agente ya se está ejecutando');
+    expect(mensajeDeError(conCodigo('SUGERENCIA_YA_DECIDIDA'))).toBe(
+      'Esta sugerencia ya fue aprobada o rechazada. Recarga la lista.',
+    );
+    expect(mensajeDeError(conCodigo('SUGERENCIA_NO_ENCONTRADA'))).toBe(
+      'No encontramos esa sugerencia o no tienes acceso a ella.',
+    );
+    expect(mensajeDeError(conCodigo('MOTIVO_INVALIDO'))).toBe('El motivo debe tener entre 10 y 500 caracteres.');
+    expect(mensajeDeError(conCodigo('AGENTE_INVALIDO'))).toBe('Ese agente no existe.');
+  });
+
+  it('los errores de ejecución y de paso tienen su texto; uno desconocido usa el mensaje del servicio', () => {
+    expect(mensajeErrorEjecucion('SIN_HERRAMIENTAS')).toBe('Sin herramientas disponibles');
+    expect(mensajeErrorEjecucion('HERRAMIENTA_NO_PERMITIDA')).toBe(
+      'El agente pidió una herramienta que no le corresponde; se ignoró.',
+    );
+    expect(mensajeErrorEjecucion('OTRO', 'algo pasó')).toBe('algo pasó');
+  });
+
+  it('lee los errores por campo de extensions.errores', () => {
+    expect(erroresDeCampo(conCodigo('COMENTARIO_INVALIDO', [{ campo: 'comentario', mensaje: 'Máximo 300' }]))).toEqual([
+      { campo: 'comentario', mensaje: 'Máximo 300' },
+    ]);
+    expect(erroresDeCampo(new Error('x'))).toEqual([]);
   });
 });

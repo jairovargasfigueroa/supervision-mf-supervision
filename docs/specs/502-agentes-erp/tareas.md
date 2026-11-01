@@ -10,5 +10,5 @@ Marca cada tarea al terminarla (con sus pruebas y su commit).
 - [x] `TarjetasAgentes`: misión, última ejecución, pendientes y «Ejecutar ahora» (solo `admin` y `gerente`) con consulta cada 3 s
 - [x] `ListaSugerencias` con filtros y diálogos de aprobar (comentario opcional) y rechazar (motivo obligatorio con contador)
 - [x] `HistorialEjecuciones` y `DetalleEjecucion` (pasos con su servidor, hallazgos y proveedor y modelo de lenguaje), solo `admin` y `gerente`
-- [ ] Manejo de «No disponible por el momento» y de los códigos `EJECUCION_EN_CURSO` y `SUGERENCIA_YA_DECIDIDA`
+- [x] Manejo de «No disponible por el momento» y de los códigos `EJECUCION_EN_CURSO` y `SUGERENCIA_YA_DECIDIDA`
 - [ ] Pruebas (incluida una que comprueba que un texto con etiquetas HTML se muestra como texto)
