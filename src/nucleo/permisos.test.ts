@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { puedeVerCobros, rolesEfectivos } from './permisos';
+import { puedeUsarReportes, puedeVerCobros, rolesEfectivos } from './permisos';
 
 describe('permisos', () => {
   it('solo cuentan los roles internos del ERP', () => {
@@ -14,5 +14,14 @@ describe('permisos', () => {
     expect(puedeVerCobros(['residente'])).toBe(false);
     expect(puedeVerCobros(['residente', 'cliente'])).toBe(false);
     expect(puedeVerCobros([])).toBe(false);
+  });
+});
+
+describe('permisos de la capa 5', () => {
+  it('reportes (503): solo admin y gerente', () => {
+    expect(puedeUsarReportes(['admin'])).toBe(true);
+    expect(puedeUsarReportes(['gerente'])).toBe(true);
+    expect(puedeUsarReportes(['residente'])).toBe(false);
+    expect(puedeUsarReportes(['cliente'])).toBe(false);
   });
 });

@@ -21,3 +21,18 @@ export function puedeVerCobros(roles: readonly string[]): boolean {
 export function usePuedeVerCobros(): boolean {
   return puedeVerCobros(useSesion()?.usuario.roles ?? []);
 }
+
+/** `admin` o `gerente`: ven todas las obras y las acciones de supervisión general. */
+export function esAdminOGerente(roles: readonly string[]): boolean {
+  return puedeVerCobros(roles);
+}
+
+/** Pantalla «Reportes» y su exportación: solo `admin` y `gerente` (503; docs/permisos.md). */
+export function puedeUsarReportes(roles: readonly string[]): boolean {
+  return esAdminOGerente(roles);
+}
+
+/** Roles del usuario de la sesión del shell. */
+export function useRoles(): string[] {
+  return useSesion()?.usuario.roles ?? [];
+}

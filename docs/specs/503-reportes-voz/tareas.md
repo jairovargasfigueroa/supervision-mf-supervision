@@ -7,7 +7,7 @@ Ajustes al aprobar la spec (31/10/2026): la ruta es `/supervision/reportes`; se 
 Marca cada tarea al terminarla (con sus pruebas y su commit).
 
 - [x] Instalar SheetJS 0.20.3 desde `https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz`; cambios a contratos y pantallas (`docs/contratos.md`, `docs/app.md`)
-- [ ] Pantalla `/supervision/reportes` («Reportes») en el menú interno (como `/supervision/riesgo` de la 402), solo para `admin` y `gerente`
+- [x] Pantalla `/supervision/reportes` («Reportes») en el menú interno (como `/supervision/riesgo` de la 402), solo para `admin` y `gerente`
 - [ ] `PanelPedido`: `CampoDictado` de la 302 con contador (3 a 500) y «Consultar»; el cuadro de texto funciona sin micrófono
 - [ ] `AtajosReportes`: un botón por atajo de `catalogoReportes.atajos`; al pulsarlo, `consultarReporte(atajo)`
 - [ ] `ResultadoReporte`: título del conjunto, `aplicado` como etiquetas, `resumen` como texto, avisos, tabla con formato por tipo y aviso de filas recortadas; «Preparando el reporte…» y límite de 60 s
