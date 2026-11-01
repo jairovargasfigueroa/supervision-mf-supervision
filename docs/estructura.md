@@ -4,7 +4,7 @@ Misma estructura, librerías, tema y reglas que `mf-materiales` (ver su `docs/es
 
 - Web Component `<mf-supervision>`, `basepath: '/supervision'`, puerto 4203.
 - Carpetas de área: `tablero/` (base), `riesgo/` (capa 4), `agentes/` y `reportes/` (capa 5), `dictado/` (302, capa 5: componente reutilizable).
-- Capa 5: exportar a Excel con SheetJS (según su spec).
+- Capa 5: exportar a Excel y CSV con SheetJS 0.20.3, instalado desde `cdn.sheetjs.com` (el registro de npm quedó en 0.18.5); `federation.config.js` no lo comparte con el shell.
 
 ## Copia resumida
 
@@ -21,6 +21,9 @@ src/
   dictado/      CampoDictado.tsx (campo con micrófono), useDictado.ts (máquina de estados, motor que habla con el worker
                 y creación del worker), grabador.ts (MediaRecorder → Float32Array 16 kHz), whisper.worker.ts
                 (transformers.js, entrada aparte en build.mjs → dist/whisper.worker.js), soporte.ts, DictadoPagina.tsx (302)
+  reportes/     ReportesPagina.tsx, PanelPedido.tsx (CampoDictado + contador + «Consultar»), AtajosReportes.tsx,
+                ResultadoReporte.tsx (formato por tipo), HistorialConsultas.tsx, exportar.ts (exportarExcel y exportarCsv
+                con SheetJS, cargado al exportar), reportes.graphql.ts (503)
   compartido/   TablaDatos.tsx, EstadoChip.tsx, EstadoVacio.tsx, EstadoError.tsx, AvisoSinConexion.tsx
 ```
 
@@ -33,4 +36,4 @@ src/
 
 ## Rutas
 
-TanStack Router con `createBrowserHistory()` y `basepath: '/supervision'`: `/supervision` es el tablero (009) y `/supervision/riesgo` el riesgo de retraso (402), `/supervision/dictado` el dictado (302), con pestañas «Tablero», «Riesgo de retraso» y «Dictado» como menú interno (`SECCIONES` de `router.tsx`); cualquier otra ruta muestra el aviso con «Ir al tablero». El historial del navegador de TanStack intercepta `pushState`; `App.tsx` lo destruye al desmontar. Para ir a otra área se usa `irAlErp()` de `nucleo/navegacion.ts`.
+TanStack Router con `createBrowserHistory()` y `basepath: '/supervision'`: `/supervision` es el tablero (009) y `/supervision/riesgo` el riesgo de retraso (402), `/supervision/dictado` el dictado (302) y `/supervision/reportes` los reportes (503, solo `admin` y `gerente`), con pestañas «Tablero», «Riesgo de retraso», «Dictado» y «Reportes» como menú interno (cada sección de `SECCIONES` dice qué roles la ven; sin permiso no aparece y, abierta por la dirección, muestra «No tienes permiso para hacer esta acción.») (`SECCIONES` de `router.tsx`); cualquier otra ruta muestra el aviso con «Ir al tablero». El historial del navegador de TanStack intercepta `pushState`; `App.tsx` lo destruye al desmontar. Para ir a otra área se usa `irAlErp()` de `nucleo/navegacion.ts`.

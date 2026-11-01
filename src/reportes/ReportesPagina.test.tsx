@@ -9,6 +9,7 @@ import { CATALOGO_REPORTES, CONSULTAR_REPORTE, CONSULTAS_REPORTE, type AtajoRepo
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
+  vi.restoreAllMocks();
   delete window.plataforma;
 });
 
@@ -295,5 +296,84 @@ describe('ReportesPagina (503): historial', () => {
     sesion();
     dibujar('/supervision/reportes', [catalogo(), historial([])]);
     expect(await screen.findByText('Aún no hiciste consultas.')).toBeTruthy();
+  });
+});
+
+describe('ReportesPagina (503): exportar y sin micrófono', () => {
+  function capturarDescargas() {
+    const descargas: { nombre: string; contenido: Blob }[] = [];
+    const urls = new Map<string, Blob>();
+    vi.spyOn(URL, 'createObjectURL').mockImplementation((b) => {
+      const url = `blob:x/${urls.size}`;
+      urls.set(url, b as Blob);
+      return url;
+    });
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+      descargas.push({ nombre: this.download, contenido: urls.get(this.href)! });
+    });
+    return descargas;
+  }
+
+  async function conResultado() {
+    sesion();
+    dibujar('/supervision/reportes', [catalogo(), historial(), consultar({ texto: 'Cobros vencidos de este año' }), historial()]);
+    await pedir('Cobros vencidos de este año');
+    await screen.findByRole('region', { name: 'Resultado del reporte' });
+  }
+
+  it('«Exportar a CSV» descarga la tabla en UTF-8 con BOM, sin pasar por el servidor', async () => {
+    const descargas = capturarDescargas();
+    await conResultado();
+    fireEvent.click(screen.getByRole('button', { name: 'Exportar a CSV' }));
+    await vi.waitFor(() => expect(descargas).toHaveLength(1));
+    expect(descargas[0].nombre).toBe('reporte-cobros-2027-03-20-1000.csv');
+    const bytes = new Uint8Array(await descargas[0].contenido.arrayBuffer());
+    expect(Array.from(bytes.slice(0, 3))).toEqual([0xef, 0xbb, 0xbf]);
+    expect(new TextDecoder().decode(bytes.slice(3))).toBe('Número,Monto neto\r\nCB-0001,12500');
+  });
+
+  it('«Exportar a Excel» descarga un .xlsx con las hojas «Datos» y «Consulta»', async () => {
+    const descargas = capturarDescargas();
+    await conResultado();
+    fireEvent.click(screen.getByRole('button', { name: 'Exportar a Excel' }));
+    await vi.waitFor(() => expect(descargas).toHaveLength(1));
+    expect(descargas[0].nombre).toBe('reporte-cobros-2027-03-20-1000.xlsx');
+    const XLSX = await import('xlsx');
+    const libro = XLSX.read(await descargas[0].contenido.arrayBuffer());
+    expect(libro.SheetNames).toEqual(['Datos', 'Consulta']);
+    expect(libro.Sheets['Datos']['B2']).toMatchObject({ t: 'n', v: 12500 });
+    expect(XLSX.utils.sheet_to_json<string[]>(libro.Sheets['Consulta'], { header: 1 }).at(-1)).toEqual([
+      'Usuario',
+      'Ana Gerente',
+    ]);
+  });
+
+  it('sin micrófono en el navegador el pedido se escribe y se consulta igual (criterio 1)', async () => {
+    sesion();
+    dibujar('/supervision/reportes', [catalogo(), historial(), consultar({ texto: 'Cobros vencidos de este año' }), historial()]);
+    expect(
+      await screen.findByText('El dictado no está disponible en este navegador; puedes escribir el texto.'),
+    ).toBeTruthy();
+    await pedir('Cobros vencidos de este año');
+    expect(await screen.findByRole('region', { name: 'Resultado del reporte' })).toBeTruthy();
+  });
+
+  it('sin conexión muestra el catálogo y el historial guardados en el equipo (104)', async () => {
+    sesion();
+    const guardado = { guardadoEn: '2027-03-19T22:00:00Z' };
+    window.plataforma!.conexion = { enLinea: false, reportarFallo: vi.fn() };
+    window.plataforma!.almacen = {
+      guardarConsulta: vi.fn().mockResolvedValue(undefined),
+      leerConsulta: vi.fn(async (clave: string) =>
+        clave.startsWith('CatalogoReportes')
+          ? { datos: { catalogoReportes: CATALOGO }, ...guardado }
+          : { datos: { consultasReporte: [] }, ...guardado },
+      ) as never,
+    };
+    dibujar('/supervision/reportes');
+    expect(await screen.findByText('Sin conexión · datos del 19/03/2027 18:00')).toBeTruthy();
+    expect(await screen.findByRole('button', { name: 'Cobros vencidos' })).toBeTruthy();
+    expect(screen.getByText('Aún no hiciste consultas.')).toBeTruthy();
   });
 });
