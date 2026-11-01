@@ -87,6 +87,7 @@ describe('whisper.worker (302)', () => {
     expect(textoTranscrito([{ text: ' faltan doce ' }, { text: 'bolsas de cemento ' }])).toBe(
       'faltan doce bolsas de cemento',
     );
+    expect(textoTranscrito({ text: ' [Música] ' })).toBe('');
     expect(porcentajeDescarga({ status: 'done', name: 'm', file: 'f' })).toBeUndefined();
   });
 });

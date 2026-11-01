@@ -46,10 +46,17 @@ export function porcentajeDescarga(info: ProgressInfo): number | undefined {
   return Math.max(0, Math.min(100, Math.floor(info.progress)));
 }
 
-/** Texto de la salida de Whisper, sin espacios de más. */
+/**
+ * Texto de la salida de Whisper, sin espacios de más. Se quitan las anotaciones entre corchetes que Whisper pone
+ * cuando no reconoce habla («[Música]», «[BLANK_AUDIO]»): así un audio sin voz queda vacío (criterio 9).
+ */
 export function textoTranscrito(salida: { text: string } | { text: string }[]): string {
   const partes = Array.isArray(salida) ? salida.map((s) => s.text) : [salida.text];
-  return partes.join(' ').replace(/\s+/g, ' ').trim();
+  return partes
+    .join(' ')
+    .replace(/\[[^\]]*\]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 let transcriptor: Promise<Transcriptor> | undefined;
