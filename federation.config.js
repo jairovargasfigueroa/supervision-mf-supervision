@@ -17,7 +17,8 @@ export default withNativeFederation({
         requiredVersion: 'auto',
       },
       {
-        skipList: REACT_SKIP_LIST,
+        // transformers.js (302) va solo dentro del worker del dictado (build.mjs): no se comparte con el shell
+        skipList: [...REACT_SKIP_LIST, '@huggingface/transformers'],
         overrides: {
           react: {
             singleton: true,

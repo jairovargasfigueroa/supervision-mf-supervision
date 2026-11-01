@@ -3,6 +3,7 @@
 import { createServer } from 'node:http';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, normalize } from 'node:path';
+import { context as contextoEsbuild } from 'esbuild';
 import { runEsBuildBuilder } from '@softarc/native-federation-esbuild';
 
 const isDev = process.argv.includes('--dev');
@@ -17,7 +18,30 @@ const federation = await runEsBuildBuilder('federation.config.js', {
   adapterConfig: { plugins: [] },
 });
 
+// Worker del dictado (302): entrada aparte, fuera de Native Federation. Lleva dentro transformers.js y solo se
+// descarga cuando el usuario pulsa el micrófono por primera vez. Queda en dist/whisper.worker.js, junto al
+// código del microfrontend, y se crea con new URL('./whisper.worker.js', import.meta.url).
+// DICTADO_MODELO_URL (opcional): ruta propia de los modelos en lugar de Hugging Face; DICTADO_MODELO: el modelo
+// (por defecto onnx-community/whisper-base; onnx-community/whisper-tiny para equipos lentos).
+const worker = await contextoEsbuild({
+  entryPoints: { 'whisper.worker': 'src/dictado/whisper.worker.ts' },
+  outdir: 'dist',
+  bundle: true,
+  format: 'esm',
+  platform: 'browser',
+  target: 'es2022',
+  minify: !isDev,
+  sourcemap: isDev,
+  logLevel: 'warning',
+  define: {
+    'process.env.DICTADO_MODELO_URL': JSON.stringify(process.env.DICTADO_MODELO_URL ?? ''),
+    'process.env.DICTADO_MODELO': JSON.stringify(process.env.DICTADO_MODELO ?? ''),
+  },
+});
+
 if (!isDev) {
+  await worker.rebuild();
+  await worker.dispose();
   await federation.close();
   console.log('Compilación terminada.');
 } else {
@@ -54,7 +78,10 @@ if (!isDev) {
     res.end(readFileSync(archivo));
   }).listen(port, () => console.log(`Sirviendo en http://localhost:${port}`));
 
+  await worker.watch();
+
   const cerrar = async () => {
+    await worker.dispose();
     await federation.close();
     process.exit(0);
   };
