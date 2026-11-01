@@ -17,8 +17,9 @@ export default withNativeFederation({
         requiredVersion: 'auto',
       },
       {
-        // transformers.js (302) va solo dentro del worker del dictado (build.mjs): no se comparte con el shell
-        skipList: [...REACT_SKIP_LIST, '@huggingface/transformers'],
+        // transformers.js (302) va solo dentro del worker del dictado (build.mjs) y SheetJS (503) solo en este
+        // microfrontend (se instala desde su CDN, sin versión del registro de npm): no se comparten con el shell
+        skipList: [...REACT_SKIP_LIST, '@huggingface/transformers', 'xlsx'],
         overrides: {
           react: {
             singleton: true,
