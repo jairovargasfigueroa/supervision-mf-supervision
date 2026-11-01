@@ -185,3 +185,115 @@ describe('ReportesPagina (503): consultar', () => {
     expect(await screen.findByText('El reporte tardó demasiado; intenta de nuevo')).toBeTruthy();
   });
 });
+
+describe('ReportesPagina (503): mensajes por código', () => {
+  it.each(['INTENCION_NO_RECONOCIDA', 'RECETA_INVALIDA'])(
+    '%s muestra «No encontré un reporte para tu pedido» con los conjuntos, sus ejemplos y los reportes comunes',
+    async (codigo) => {
+      sesion();
+      dibujar('/supervision/reportes', [catalogo(), historial(), consultar({ texto: 'el clima de mañana' }, { codigo }), historial()]);
+      await pedir('el clima de mañana');
+      expect(await screen.findByText('No encontré un reporte para tu pedido')).toBeTruthy();
+      expect(screen.getByText('Material usado')).toBeTruthy();
+      expect(screen.getByText(/Número, monto, emisión/)).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Cobros vencidos' })).toBeTruthy();
+
+      // Un ejemplo pasa al cuadro de texto para consultarlo
+      fireEvent.click(screen.getByRole('button', { name: 'Material usado por zona este año' }));
+      expect((cuadro() as HTMLTextAreaElement).value).toBe('Material usado por zona este año');
+    },
+  );
+
+  it.each([
+    ['DEMASIADAS_CONSULTAS', 'Demasiadas consultas; espera un momento'],
+    ['REPORTES_NO_DISPONIBLES', 'El servicio de reportes no está disponible; intenta de nuevo'],
+    ['SERVICIO_NO_DISPONIBLE', 'El servicio de reportes no está disponible; intenta de nuevo'],
+    ['TIEMPO_AGOTADO', 'El reporte tardó demasiado; intenta de nuevo'],
+  ])('%s muestra «%s»', async (codigo, mensaje) => {
+    sesion();
+    dibujar('/supervision/reportes', [catalogo(), historial(), consultar({ texto: 'Cobros vencidos' }, { codigo }), historial()]);
+    await pedir('Cobros vencidos');
+    expect(await screen.findByText(mensaje)).toBeTruthy();
+    expect(screen.queryByText(/Mientras tanto puedes usar los reportes comunes/)).toBeNull();
+  });
+
+  it('LLM_NO_DISPONIBLE sugiere los reportes comunes, que funcionan sin el modelo', async () => {
+    sesion();
+    dibujar('/supervision/reportes', [
+      catalogo(),
+      historial(),
+      consultar({ texto: 'Cobros vencidos' }, { codigo: 'LLM_NO_DISPONIBLE' }),
+      historial(),
+      consultar({ atajo: 'COBROS_VENCIDOS' }, { datos: { texto: null, atajo: 'COBROS_VENCIDOS' } }),
+    ]);
+    await pedir('Cobros vencidos');
+    expect(await screen.findByText('El servicio de reportes no está disponible; intenta de nuevo')).toBeTruthy();
+    expect(screen.getByText(/Mientras tanto puedes usar los reportes comunes/)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Cobros vencidos' }));
+    expect(await screen.findByRole('region', { name: 'Resultado del reporte' })).toBeTruthy();
+  });
+});
+
+describe('ReportesPagina (503): historial', () => {
+  const ANTERIORES = [
+    {
+      id: 'h1',
+      texto: 'Planillas observadas de la zona norte',
+      atajo: null,
+      conjunto: 'PLANILLAS',
+      resultado: 'OK',
+      resumen: '…',
+      totalFilas: 3,
+      creadaEn: '2027-03-20T13:00:00Z',
+    },
+    {
+      id: 'h2',
+      texto: null,
+      atajo: 'COBROS_VENCIDOS',
+      conjunto: 'COBROS',
+      resultado: 'OK',
+      resumen: '…',
+      totalFilas: 1,
+      creadaEn: '2027-03-20T12:00:00Z',
+    },
+    {
+      id: 'h3',
+      texto: 'el clima de mañana',
+      atajo: null,
+      conjunto: null,
+      resultado: 'NO_RECONOCIDA',
+      resumen: null,
+      totalFilas: null,
+      creadaEn: '2027-03-20T11:00:00Z',
+    },
+  ];
+
+  it('muestra las últimas consultas y al pulsar una vuelve a consultar con su texto o su atajo (criterio 16)', async () => {
+    sesion();
+    dibujar('/supervision/reportes', [
+      catalogo(),
+      historial(ANTERIORES),
+      consultar({ texto: 'Planillas observadas de la zona norte' }),
+      historial(ANTERIORES),
+      consultar({ atajo: 'COBROS_VENCIDOS' }, { datos: { texto: null, atajo: 'COBROS_VENCIDOS' } }),
+    ]);
+    const lista = within(await screen.findByRole('region', { name: 'Últimas consultas' }));
+    expect(await lista.findByText('Planillas observadas de la zona norte')).toBeTruthy();
+    expect(lista.getByText('20/03/2027 09:00 · 3 filas')).toBeTruthy();
+    expect(await lista.findByText('Cobros vencidos')).toBeTruthy();
+    expect(lista.getByText('20/03/2027 07:00 · No reconocida')).toBeTruthy();
+
+    fireEvent.click(lista.getByText('Planillas observadas de la zona norte'));
+    expect(await screen.findByRole('region', { name: 'Resultado del reporte' })).toBeTruthy();
+    expect((cuadro() as HTMLTextAreaElement).value).toBe('Planillas observadas de la zona norte');
+
+    fireEvent.click(lista.getByText('Cobros vencidos'));
+    expect(await screen.findByText('Pedido: Cobros vencidos')).toBeTruthy();
+  });
+
+  it('sin consultas avisa que aún no hay', async () => {
+    sesion();
+    dibujar('/supervision/reportes', [catalogo(), historial([])]);
+    expect(await screen.findByText('Aún no hiciste consultas.')).toBeTruthy();
+  });
+});

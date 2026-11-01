@@ -83,6 +83,9 @@ export interface CatalogoReportes {
   atajos: AtajoDisponible[];
 }
 
+/** Lo que se envía: el texto del usuario o un reporte común (exactamente uno). */
+export type PedidoReporte = { texto: string } | { atajo: AtajoReporte };
+
 /** Largo permitido del pedido (503, criterio 3). */
 export const LARGO_MINIMO_PEDIDO = 3;
 export const LARGO_MAXIMO_PEDIDO = 500;
