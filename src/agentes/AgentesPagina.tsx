@@ -7,6 +7,7 @@ import { AvisoSinConexion } from '../compartido/AvisoSinConexion';
 import { EstadoError } from '../compartido/EstadoError';
 import { puedeAdministrarAgentes, useRoles } from '../nucleo/permisos';
 import { useAgentes } from './agentes.graphql';
+import { ListaSugerencias } from './ListaSugerencias';
 import { TarjetasAgentes } from './TarjetasAgentes';
 
 // Vista «Agentes» (502, criterio 16): una tarjeta por agente, las sugerencias para aprobar o rechazar y, para
@@ -65,6 +66,9 @@ export function AgentesPagina() {
       <Box component="section" aria-label="Agentes disponibles" sx={{ mb: 3 }}>
         {tarjetas()}
       </Box>
+      <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
+        <ListaSugerencias agentes={agentes.data?.agentes} alDecidir={actualizar} />
+      </Paper>
     </Box>
   );
 }
