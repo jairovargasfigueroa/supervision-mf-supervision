@@ -36,3 +36,8 @@ export function puedeUsarReportes(roles: readonly string[]): boolean {
 export function useRoles(): string[] {
   return useSesion()?.usuario.roles ?? [];
 }
+
+/** «Ejecutar ahora», historial y detalle de las ejecuciones de los agentes: solo `admin` y `gerente` (502). */
+export function puedeAdministrarAgentes(roles: readonly string[]): boolean {
+  return esAdminOGerente(roles);
+}
