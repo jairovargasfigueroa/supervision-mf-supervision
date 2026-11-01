@@ -148,11 +148,12 @@ describe('ListaSugerencias (502)', () => {
     const campo = dialogo.getByRole('textbox', { name: 'Comentario (opcional)' });
     fireEvent.change(campo, { target: { value: 'x'.repeat(301) } });
     expect((dialogo.getByRole('button', { name: 'Aprobar' }) as HTMLButtonElement).disabled).toBe(true);
+    expect(dialogo.getByText('El comentario puede tener hasta 300 caracteres. · 301 / 300')).toBeTruthy();
 
     fireEvent.change(campo, { target: { value: 'ok' } });
     fireEvent.click(dialogo.getByRole('button', { name: 'Aprobar' }));
     expect(await dialogo.findByText('Revisa el comentario.')).toBeTruthy();
-    expect(dialogo.getByText('Máximo 300 caracteres.')).toBeTruthy();
+    expect(dialogo.getByText('Máximo 300 caracteres. · 2 / 300')).toBeTruthy();
   });
 
   it('rechazar exige un motivo de 10 a 500 caracteres con contador (criterio 13)', async () => {
@@ -171,7 +172,7 @@ describe('ListaSugerencias (502)', () => {
     expect(boton.disabled).toBe(true);
     const campo = dialogo.getByRole('textbox', { name: 'Motivo' });
     fireEvent.change(campo, { target: { value: 'corto' } });
-    expect(dialogo.getByText('5 / 500 (mínimo 10)')).toBeTruthy();
+    expect(dialogo.getByText('El motivo debe tener entre 10 y 500 caracteres. · 5 / 500 (mínimo 10)')).toBeTruthy();
     expect(boton.disabled).toBe(true);
     fireEvent.change(campo, { target: { value: 'El stock ya se repuso ayer' } });
     expect(boton.disabled).toBe(false);

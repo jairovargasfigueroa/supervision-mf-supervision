@@ -7,6 +7,7 @@ import {
   esPedidoNoReconocido,
   mensajeDeError,
   mensajeErrorEjecucion,
+  mensajeErrorPaso,
   mensajeErrorReporte,
 } from './errores';
 
@@ -87,12 +88,24 @@ describe('mensajes de agentes (502)', () => {
     expect(mensajeDeError(conCodigo('AGENTE_INVALIDO'))).toBe('Ese agente no existe.');
   });
 
-  it('los errores de ejecución y de paso tienen su texto; uno desconocido usa el mensaje del servicio', () => {
+  it('los errores de ejecución tienen su texto; uno desconocido usa el mensaje del servicio', () => {
     expect(mensajeErrorEjecucion('SIN_HERRAMIENTAS')).toBe('Sin herramientas disponibles');
-    expect(mensajeErrorEjecucion('HERRAMIENTA_NO_PERMITIDA')).toBe(
+    expect(mensajeErrorEjecucion('LLM_NO_DISPONIBLE', 'El modelo de lenguaje no respondió (ConnectError).')).toBe(
+      'El modelo de lenguaje no respondió.',
+    );
+    expect(mensajeErrorEjecucion('ERROR_INTERNO', 'KeyError')).toBe('La ejecución falló por un error inesperado.');
+    expect(mensajeErrorEjecucion('OTRO', 'algo pasó')).toBe('algo pasó');
+    expect(mensajeErrorEjecucion('OTRO')).toBe('La ejecución falló por un error inesperado.');
+  });
+
+  it('los errores de paso tienen su texto y nunca muestran el código', () => {
+    expect(mensajeErrorPaso('HERRAMIENTA_NO_PERMITIDA')).toBe(
       'El agente pidió una herramienta que no le corresponde; se ignoró.',
     );
-    expect(mensajeErrorEjecucion('OTRO', 'algo pasó')).toBe('algo pasó');
+    expect(mensajeErrorPaso('ARGUMENTO_INVALIDO')).toBe('El agente pidió datos con parámetros no válidos; se ignoró.');
+    expect(mensajeErrorPaso('OBRA_NO_ENCONTRADA')).toBe('La obra pedida no existe.');
+    expect(mensajeErrorPaso('ERROR_INTERNO')).toBe('La consulta falló en el servicio.');
+    expect(mensajeErrorPaso('OTRO_CODIGO')).toBe('La consulta falló en el servicio.');
   });
 
   it('lee los errores por campo de extensions.errores', () => {

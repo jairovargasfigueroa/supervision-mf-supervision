@@ -7,7 +7,7 @@ import { AvisoSinConexion } from '../compartido/AvisoSinConexion';
 import { EstadoChip } from '../compartido/EstadoChip';
 import { EstadoError } from '../compartido/EstadoError';
 import { ayudanteColumnas, TablaDatos } from '../compartido/TablaDatos';
-import { codigoDeError, mensajeDeError, mensajeErrorEjecucion, NOMBRE_SERVICIO, type Servicio } from '../nucleo/errores';
+import { codigoDeError, mensajeDeError, mensajeErrorEjecucion, mensajeErrorPaso, NOMBRE_SERVICIO, type Servicio } from '../nucleo/errores';
 import { formatearCantidad, formatearFechaHora } from '../nucleo/formato';
 import {
   ESTADO_EJECUCION,
@@ -76,7 +76,7 @@ const COLUMNAS_PASOS = [
     id: 'error',
     header: 'Error',
     sortFn: 'text',
-    cell: ({ getValue }) => (getValue() ? mensajeErrorEjecucion(getValue()) : '—'),
+    cell: ({ getValue }) => (getValue() ? mensajeErrorPaso(getValue()) : '—'),
   }),
 ];
 

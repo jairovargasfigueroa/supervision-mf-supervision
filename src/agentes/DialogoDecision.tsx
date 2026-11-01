@@ -12,6 +12,8 @@ import { codigoDeError, erroresDeCampo, mensajeDeError } from '../nucleo/errores
 import {
   APROBAR_SUGERENCIA,
   COMENTARIO_MAXIMO,
+  MENSAJE_COMENTARIO,
+  MENSAJE_MOTIVO,
   MOTIVO_MAXIMO,
   MOTIVO_MINIMO,
   RECHAZAR_SUGERENCIA,
@@ -45,7 +47,10 @@ export function DialogoDecision({ sugerencia, modo, alCerrar, alDecidir }: Props
   const valido = rechazo ? largo >= MOTIVO_MINIMO && largo <= MOTIVO_MAXIMO : largo <= COMENTARIO_MAXIMO;
   const campo = rechazo ? 'motivo' : 'comentario';
   const errorCampo = erroresDeCampo(error).find((e) => e.campo === campo)?.mensaje;
-  const ayuda = errorCampo ?? (rechazo ? `${largo} / ${maximo} (mínimo ${MOTIVO_MINIMO})` : `${largo} / ${maximo}`);
+  const contador = rechazo ? `${largo} / ${maximo} (mínimo ${MOTIVO_MINIMO})` : `${largo} / ${maximo}`;
+  const errorLocal = largo > 0 && !valido ? (rechazo ? MENSAJE_MOTIVO : MENSAJE_COMENTARIO) : undefined;
+  const mensajeCampo = errorCampo ?? errorLocal;
+  const ayuda = mensajeCampo ? `${mensajeCampo} · ${contador}` : contador;
 
   const confirmar = async () => {
     setError(undefined);
@@ -88,7 +93,7 @@ export function DialogoDecision({ sugerencia, modo, alCerrar, alDecidir }: Props
           minRows={3}
           fullWidth
           autoFocus
-          error={!!errorCampo || (largo > 0 && !valido)}
+          error={!!mensajeCampo}
           helperText={ayuda}
         />
       </DialogContent>

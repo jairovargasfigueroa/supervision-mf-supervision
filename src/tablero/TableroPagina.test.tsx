@@ -483,7 +483,7 @@ describe('TableroPagina', () => {
       { request: { query: TABLERO, variables: {} }, error: new TypeError('Failed to fetch') },
       tablero(),
     ]);
-    expect(await screen.findByText('No disponible por el momento.')).toBeTruthy();
+    expect(await screen.findByText('No disponible por el momento')).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }));
     expect((await tarjeta('Obras en ejecución')).getByText('3')).toBeTruthy();

@@ -162,6 +162,19 @@ describe('HistorialEjecuciones y DetalleEjecucion (502)', () => {
     expect(d.getByText('Sin hallazgos.')).toBeTruthy();
   });
 
+  it.each([
+    ['LLM_NO_DISPONIBLE', 'El modelo de lenguaje no respondió (ConnectError).', 'El modelo de lenguaje no respondió.'],
+    ['ERROR_INTERNO', 'KeyError: obra', 'La ejecución falló por un error inesperado.'],
+  ])('una ejecución fallida con %s muestra su texto y no el del servicio', async (codigo, mensaje, texto) => {
+    dibujar([
+      ejecuciones({ limite: 20 }),
+      detalle({ ...DETALLE, estado: 'FALLIDA', resumen: null, error: { __typename: 'ErrorEjecucion', codigo, mensaje }, pasos: [], hallazgos: [] }),
+    ]);
+    const d = await abrirDetalle();
+    expect(d.getByText(texto)).toBeTruthy();
+    expect(d.queryByText(mensaje)).toBeNull();
+  });
+
   it('EJECUCION_NO_ENCONTRADA muestra «No encontramos esa ejecución.»', async () => {
     dibujar([ejecuciones({ limite: 20 }), detalle(null, 'EJECUCION_NO_ENCONTRADA')]);
     fireEvent.click(await screen.findByRole('row', { name: /Control de materiales/ }));

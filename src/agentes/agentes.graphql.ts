@@ -107,6 +107,10 @@ export const COMENTARIO_MAXIMO = 300;
 export const MOTIVO_MINIMO = 10;
 export const MOTIVO_MAXIMO = 500;
 
+/** Reglas locales de la decisión (docs/mensajes.md: `MOTIVO_INVALIDO` y la del comentario). */
+export const MENSAJE_MOTIVO = `El motivo debe tener entre ${MOTIVO_MINIMO} y ${MOTIVO_MAXIMO} caracteres.`;
+export const MENSAJE_COMENTARIO = `El comentario puede tener hasta ${COMENTARIO_MAXIMO} caracteres.`;
+
 export const LIMITE_SUGERENCIAS = 50;
 export const LIMITE_EJECUCIONES = 20;
 

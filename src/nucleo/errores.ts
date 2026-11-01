@@ -111,21 +111,35 @@ export function mensajeErrorReporte(error: unknown, codigo: string | undefined =
 }
 
 // 502: errores de una ejecución de agente (`error.codigo` de una ejecución FALLIDA o `error` de un paso). No son
-// respuestas HTTP: se ven en el historial y el detalle de ejecuciones (docs/mensajes.md).
+// respuestas HTTP: se ven en el historial y el detalle de ejecuciones (docs/mensajes.md). ERROR_INTERNO tiene un
+// texto en la ejecución y otro en el paso.
+const MENSAJE_PASO_FALLIDO = 'La consulta falló en el servicio.';
+const MENSAJE_EJECUCION_FALLIDA = 'La ejecución falló por un error inesperado.';
+
 const MENSAJES_EJECUCION: Record<string, string> = {
   SIN_HERRAMIENTAS: 'Sin herramientas disponibles',
   REPORTE_INVALIDO: 'El agente no logró armar un reporte válido.',
   EJECUCION_TIEMPO_AGOTADO: 'El agente superó el tiempo máximo de 3 minutos.',
   INTERRUMPIDA: 'La ejecución se interrumpió porque el servicio se reinició.',
+  LLM_NO_DISPONIBLE: 'El modelo de lenguaje no respondió.',
+  ERROR_INTERNO: MENSAJE_EJECUCION_FALLIDA,
+};
+
+const MENSAJES_PASO: Record<string, string> = {
   HERRAMIENTA_NO_PERMITIDA: 'El agente pidió una herramienta que no le corresponde; se ignoró.',
   ARGUMENTO_INVALIDO: 'El agente pidió datos con parámetros no válidos; se ignoró.',
   OBRA_NO_ENCONTRADA: 'La obra pedida no existe.',
-  ERROR_INTERNO: 'La consulta falló en el servicio.',
+  ERROR_INTERNO: MENSAJE_PASO_FALLIDO,
 };
 
-/** Texto de un error de ejecución o de paso; si el código no se conoce, el que vino del servicio de IA. */
+/** Texto del error de una ejecución `FALLIDA`; si el código no se conoce, el que vino del servicio de IA. */
 export function mensajeErrorEjecucion(codigo: string, mensaje?: string): string {
-  return MENSAJES_EJECUCION[codigo] ?? mensaje ?? codigo;
+  return MENSAJES_EJECUCION[codigo] ?? (mensaje || MENSAJE_EJECUCION_FALLIDA);
+}
+
+/** Texto del error de un paso; nunca el código: si no se conoce, el de una consulta que falló en el servicio. */
+export function mensajeErrorPaso(codigo: string): string {
+  return MENSAJES_PASO[codigo] ?? MENSAJE_PASO_FALLIDO;
 }
 
 /** Errores por campo de una respuesta `400` o `422` (`extensions.errores[]`, docs/mensajes.md). */
