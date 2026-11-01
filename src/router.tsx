@@ -13,16 +13,18 @@ import {
   type RouterHistory,
 } from '@tanstack/react-router';
 import { EstadoVacio } from './compartido/EstadoVacio';
+import { DictadoPagina } from './dictado/DictadoPagina';
 import { RiesgoPagina } from './riesgo/RiesgoPagina';
 import { TableroPagina } from './tablero/TableroPagina';
 
 // Rutas internas del microfrontend (docs/estructura.md). El shell deja /supervision/** a este microfrontend;
 // el router usa basepath /supervision y su pantalla inicial es el tablero (009). /supervision/riesgo es la
-// pantalla «Riesgo de retraso» (402), con su enlace en el menú interno.
+// pantalla «Riesgo de retraso» (402) y /supervision/dictado la de «Dictado» (302), con sus enlaces en el menú interno.
 
 export const SECCIONES = [
   { ruta: '/', etiqueta: 'Tablero' },
   { ruta: '/riesgo', etiqueta: 'Riesgo de retraso' },
+  { ruta: '/dictado', etiqueta: 'Dictado' },
 ] as const;
 
 function Area() {
@@ -64,7 +66,9 @@ const raiz = createRootRoute({ component: Area, notFoundComponent: NoEncontrada 
 const tablero = createRoute({ getParentRoute: () => raiz, path: '/', component: TableroPagina });
 const riesgo = createRoute({ getParentRoute: () => raiz, path: '/riesgo', component: RiesgoPagina });
 
-const arbol = raiz.addChildren([tablero, riesgo]);
+const dictado = createRoute({ getParentRoute: () => raiz, path: '/dictado', component: DictadoPagina });
+
+const arbol = raiz.addChildren([tablero, riesgo, dictado]);
 
 /** Crea el router del área; en pruebas recibe un historial en memoria. */
 export function crearRouter(historial: RouterHistory = createBrowserHistory()) {
