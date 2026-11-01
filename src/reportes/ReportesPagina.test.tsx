@@ -322,11 +322,14 @@ describe('ReportesPagina (503): exportar y sin micrófono', () => {
     await screen.findByRole('region', { name: 'Resultado del reporte' });
   }
 
+  // La exportación carga `xlsx` con `import()` al pulsar el botón; con la máquina ocupada pasa del segundo por defecto.
+  const ESPERA_DESCARGA = { timeout: 5000 };
+
   it('«Exportar a CSV» descarga la tabla en UTF-8 con BOM, sin pasar por el servidor', async () => {
     const descargas = capturarDescargas();
     await conResultado();
     fireEvent.click(screen.getByRole('button', { name: 'Exportar a CSV' }));
-    await vi.waitFor(() => expect(descargas).toHaveLength(1));
+    await vi.waitFor(() => expect(descargas).toHaveLength(1), ESPERA_DESCARGA);
     expect(descargas[0].nombre).toBe('reporte-cobros-2027-03-20-1000.csv');
     const bytes = new Uint8Array(await descargas[0].contenido.arrayBuffer());
     expect(Array.from(bytes.slice(0, 3))).toEqual([0xef, 0xbb, 0xbf]);
@@ -337,7 +340,7 @@ describe('ReportesPagina (503): exportar y sin micrófono', () => {
     const descargas = capturarDescargas();
     await conResultado();
     fireEvent.click(screen.getByRole('button', { name: 'Exportar a Excel' }));
-    await vi.waitFor(() => expect(descargas).toHaveLength(1));
+    await vi.waitFor(() => expect(descargas).toHaveLength(1), ESPERA_DESCARGA);
     expect(descargas[0].nombre).toBe('reporte-cobros-2027-03-20-1000.xlsx');
     const XLSX = await import('xlsx');
     const libro = XLSX.read(await descargas[0].contenido.arrayBuffer());
