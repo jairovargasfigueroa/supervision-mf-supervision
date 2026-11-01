@@ -2,12 +2,16 @@ import { useRef, useState, type ReactNode } from 'react';
 import { useMutation } from '@apollo/client/react';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import LinearProgress from '@mui/material/LinearProgress';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
+import DownloadIcon from '@mui/icons-material/Download';
 import { AvisoSinConexion } from '../compartido/AvisoSinConexion';
 import { codigoDeError, mensajeDeError } from '../nucleo/errores';
+import { useSesion } from '../nucleo/sesion';
 import { AtajosReportes } from './AtajosReportes';
+import { exportarExcel } from './exportar';
 import { PanelPedido } from './PanelPedido';
 import {
   CONSULTAR_REPORTE,
@@ -36,6 +40,7 @@ type Estado =
 const TIEMPO_AGOTADO_LOCAL = 'TIEMPO_AGOTADO';
 
 export function ReportesPagina() {
+  const sesion = useSesion();
   const catalogo = useCatalogoReportes();
   const atajos = catalogo.data?.catalogoReportes.atajos;
   const [texto, setTexto] = useState('');
@@ -87,7 +92,19 @@ export function ReportesPagina() {
     }
     if (estado.tipo === 'resultado') {
       const { consulta, pedido } = estado;
-      return <ResultadoReporte consulta={consulta} pedido={'texto' in pedido ? pedido.texto : tituloAtajo(pedido.atajo)} />;
+      const textoPedido = 'texto' in pedido ? pedido.texto : tituloAtajo(pedido.atajo);
+      const contexto = { pedido: textoPedido, usuario: sesion?.usuario.nombre ?? '' };
+      return (
+        <ResultadoReporte
+          consulta={consulta}
+          pedido={textoPedido}
+          acciones={
+            <Button variant="outlined" size="small" startIcon={<DownloadIcon />} onClick={() => void exportarExcel(consulta, contexto)}>
+              Exportar a Excel
+            </Button>
+          }
+        />
+      );
     }
     return null;
   };

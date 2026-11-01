@@ -11,7 +11,7 @@ Marca cada tarea al terminarla (con sus pruebas y su commit).
 - [x] `PanelPedido`: `CampoDictado` de la 302 con contador (3 a 500) y «Consultar»; el cuadro de texto funciona sin micrófono
 - [x] `AtajosReportes`: un botón por atajo de `catalogoReportes.atajos`; al pulsarlo, `consultarReporte(atajo)`
 - [x] `ResultadoReporte`: título del conjunto, `aplicado` como etiquetas, `resumen` como texto, avisos, tabla con formato por tipo y aviso de filas recortadas; «Preparando el reporte…» y límite de 60 s
-- [ ] `exportarExcel`: hojas «Datos» y «Consulta», conversión por tipo y apóstrofo en textos tipo fórmula
+- [x] `exportarExcel`: hojas «Datos» y «Consulta», conversión por tipo y apóstrofo en textos tipo fórmula
 - [ ] `exportarCsv`: solo la tabla con `utils.sheet_to_csv`, UTF-8 con BOM y apóstrofo en textos tipo fórmula
 - [ ] `HistorialConsultas` y mensajes por código de error (`INTENCION_NO_RECONOCIDA` y `RECETA_INVALIDA` con los conjuntos, ejemplos y atajos)
 - [ ] Pruebas (incluida la lectura del `.xlsx` generado para revisar tipos de celda)
