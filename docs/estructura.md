@@ -18,6 +18,8 @@ src/
   tablero/      TableroPagina.tsx, TarjetaIndicador.tsx, TablaObras.tsx, tablero.graphql.ts, datos-parciales.ts
   riesgo/       RiesgoPagina.tsx, ChipRiesgo.tsx (nivel del modelo como chip y porcentaje), GraficoHistorial.tsx
                 (SVG propio), PanelModelo.tsx («Sobre el modelo»), riesgo.graphql.ts (402)
+  agentes/      AgentesPagina.tsx, TarjetasAgentes.tsx («Ejecutar ahora» y seguimiento cada 3 s), ListaSugerencias.tsx,
+                DialogoDecision.tsx (aprobar y rechazar), HistorialEjecuciones.tsx, DetalleEjecucion.tsx, agentes.graphql.ts (502)
   dictado/      CampoDictado.tsx (campo con micrófono), useDictado.ts (máquina de estados, motor que habla con el worker
                 y creación del worker), grabador.ts (MediaRecorder → Float32Array 16 kHz), whisper.worker.ts
                 (transformers.js, entrada aparte en build.mjs → dist/whisper.worker.js), soporte.ts, DictadoPagina.tsx (302)
@@ -36,4 +38,4 @@ src/
 
 ## Rutas
 
-TanStack Router con `createBrowserHistory()` y `basepath: '/supervision'`: `/supervision` es el tablero (009) y `/supervision/riesgo` el riesgo de retraso (402), `/supervision/dictado` el dictado (302) y `/supervision/reportes` los reportes (503, solo `admin` y `gerente`), con pestañas «Tablero», «Riesgo de retraso», «Dictado» y «Reportes» como menú interno (cada sección de `SECCIONES` dice qué roles la ven; sin permiso no aparece y, abierta por la dirección, muestra «No tienes permiso para hacer esta acción.») (`SECCIONES` de `router.tsx`); cualquier otra ruta muestra el aviso con «Ir al tablero». El historial del navegador de TanStack intercepta `pushState`; `App.tsx` lo destruye al desmontar. Para ir a otra área se usa `irAlErp()` de `nucleo/navegacion.ts`.
+TanStack Router con `createBrowserHistory()` y `basepath: '/supervision'`: `/supervision` es el tablero (009) y `/supervision/riesgo` el riesgo de retraso (402), `/supervision/agentes` los agentes (502), `/supervision/dictado` el dictado (302) y `/supervision/reportes` los reportes (503, solo `admin` y `gerente`), con pestañas «Tablero», «Riesgo de retraso», «Agentes», «Dictado» y «Reportes» como menú interno (cada sección de `SECCIONES` dice qué roles la ven; sin permiso no aparece y, abierta por la dirección, muestra «No tienes permiso para hacer esta acción.») (`SECCIONES` de `router.tsx`); cualquier otra ruta muestra el aviso con «Ir al tablero». El historial del navegador de TanStack intercepta `pushState`; `App.tsx` lo destruye al desmontar. Para ir a otra área se usa `irAlErp()` de `nucleo/navegacion.ts`.

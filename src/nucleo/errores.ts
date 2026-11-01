@@ -14,6 +14,14 @@ const MENSAJES: Record<string, string> = {
   TIEMPO_AGOTADO: 'El servidor tardó demasiado en responder. Intenta de nuevo.',
   // 402
   MODELO_NO_DISPONIBLE: 'El modelo de riesgo no está disponible por el momento.',
+  // 502
+  AGENTE_INVALIDO: 'Ese agente no existe.',
+  EJECUCION_EN_CURSO: 'El agente ya se está ejecutando',
+  EJECUCION_NO_ENCONTRADA: 'No encontramos esa ejecución.',
+  SUGERENCIA_NO_ENCONTRADA: 'No encontramos esa sugerencia o no tienes acceso a ella.',
+  SUGERENCIA_YA_DECIDIDA: 'Esta sugerencia ya fue aprobada o rechazada. Recarga la lista.',
+  COMENTARIO_INVALIDO: 'Revisa el comentario.',
+  MOTIVO_INVALIDO: 'El motivo debe tener entre 10 y 500 caracteres.',
 };
 
 /** Panel «Sobre el modelo» sin modelo cargado en IA (MODELO_NO_DISPONIBLE, 402). */
@@ -100,4 +108,50 @@ export function esPedidoNoReconocido(codigo: string | undefined): boolean {
 /** Mensaje de un error al pedir un reporte; los códigos que no son de reportes, como en el resto del área. */
 export function mensajeErrorReporte(error: unknown, codigo: string | undefined = codigoDeError(error)): string {
   return (codigo && MENSAJES_REPORTES[codigo]) || mensajeDeError(error);
+}
+
+// 502: errores de una ejecución de agente (`error.codigo` de una ejecución FALLIDA o `error` de un paso). No son
+// respuestas HTTP: se ven en el historial y el detalle de ejecuciones (docs/mensajes.md). ERROR_INTERNO tiene un
+// texto en la ejecución y otro en el paso.
+const MENSAJE_PASO_FALLIDO = 'La consulta falló en el servicio.';
+const MENSAJE_EJECUCION_FALLIDA = 'La ejecución falló por un error inesperado.';
+
+const MENSAJES_EJECUCION: Record<string, string> = {
+  SIN_HERRAMIENTAS: 'Sin herramientas disponibles',
+  REPORTE_INVALIDO: 'El agente no logró armar un reporte válido.',
+  EJECUCION_TIEMPO_AGOTADO: 'El agente superó el tiempo máximo de 3 minutos.',
+  INTERRUMPIDA: 'La ejecución se interrumpió porque el servicio se reinició.',
+  LLM_NO_DISPONIBLE: 'El modelo de lenguaje no respondió.',
+  ERROR_INTERNO: MENSAJE_EJECUCION_FALLIDA,
+};
+
+const MENSAJES_PASO: Record<string, string> = {
+  HERRAMIENTA_NO_PERMITIDA: 'El agente pidió una herramienta que no le corresponde; se ignoró.',
+  ARGUMENTO_INVALIDO: 'El agente pidió datos con parámetros no válidos; se ignoró.',
+  OBRA_NO_ENCONTRADA: 'La obra pedida no existe.',
+  ERROR_INTERNO: MENSAJE_PASO_FALLIDO,
+};
+
+/** Texto del error de una ejecución `FALLIDA`; si el código no se conoce, el que vino del servicio de IA. */
+export function mensajeErrorEjecucion(codigo: string, mensaje?: string): string {
+  return MENSAJES_EJECUCION[codigo] ?? (mensaje || MENSAJE_EJECUCION_FALLIDA);
+}
+
+/** Texto del error de un paso; nunca el código: si no se conoce, el de una consulta que falló en el servicio. */
+export function mensajeErrorPaso(codigo: string): string {
+  return MENSAJES_PASO[codigo] ?? MENSAJE_PASO_FALLIDO;
+}
+
+/** Errores por campo de una respuesta `400` o `422` (`extensions.errores[]`, docs/mensajes.md). */
+export function erroresDeCampo(error: unknown): { campo: string; mensaje: string }[] {
+  if (!CombinedGraphQLErrors.is(error)) return [];
+  for (const e of error.errors) {
+    const errores = e.extensions?.['errores'];
+    if (Array.isArray(errores)) {
+      return errores.filter(
+        (x): x is { campo: string; mensaje: string } => typeof x?.campo === 'string' && typeof x?.mensaje === 'string',
+      );
+    }
+  }
+  return [];
 }
