@@ -7,7 +7,7 @@ Ajuste al aprobar la spec (31/10/2026): el detalle de la ejecución muestra el s
 Marca cada tarea al terminarla (con sus pruebas y su commit).
 
 - [x] Pantalla `/supervision/agentes` en el menú interno (mismo mecanismo que `/supervision/riesgo` de la 402); cambios a contratos y pantallas (`docs/contratos.md`, `docs/app.md`)
-- [ ] `TarjetasAgentes`: misión, última ejecución, pendientes y «Ejecutar ahora» (solo `admin` y `gerente`) con consulta cada 3 s
+- [x] `TarjetasAgentes`: misión, última ejecución, pendientes y «Ejecutar ahora» (solo `admin` y `gerente`) con consulta cada 3 s
 - [ ] `ListaSugerencias` con filtros y diálogos de aprobar (comentario opcional) y rechazar (motivo obligatorio con contador)
 - [ ] `HistorialEjecuciones` y `DetalleEjecucion` (pasos con su servidor, hallazgos y proveedor y modelo de lenguaje), solo `admin` y `gerente`
 - [ ] Manejo de «No disponible por el momento» y de los códigos `EJECUCION_EN_CURSO` y `SUGERENCIA_YA_DECIDIDA`

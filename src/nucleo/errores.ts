@@ -14,6 +14,14 @@ const MENSAJES: Record<string, string> = {
   TIEMPO_AGOTADO: 'El servidor tardó demasiado en responder. Intenta de nuevo.',
   // 402
   MODELO_NO_DISPONIBLE: 'El modelo de riesgo no está disponible por el momento.',
+  // 502
+  AGENTE_INVALIDO: 'Ese agente no existe.',
+  EJECUCION_EN_CURSO: 'El agente ya se está ejecutando',
+  EJECUCION_NO_ENCONTRADA: 'No encontramos esa ejecución.',
+  SUGERENCIA_NO_ENCONTRADA: 'No encontramos esa sugerencia o no tienes acceso a ella.',
+  SUGERENCIA_YA_DECIDIDA: 'Esta sugerencia ya fue aprobada o rechazada. Recarga la lista.',
+  COMENTARIO_INVALIDO: 'Revisa el comentario.',
+  MOTIVO_INVALIDO: 'El motivo debe tener entre 10 y 500 caracteres.',
 };
 
 /** Panel «Sobre el modelo» sin modelo cargado en IA (MODELO_NO_DISPONIBLE, 402). */
@@ -100,4 +108,36 @@ export function esPedidoNoReconocido(codigo: string | undefined): boolean {
 /** Mensaje de un error al pedir un reporte; los códigos que no son de reportes, como en el resto del área. */
 export function mensajeErrorReporte(error: unknown, codigo: string | undefined = codigoDeError(error)): string {
   return (codigo && MENSAJES_REPORTES[codigo]) || mensajeDeError(error);
+}
+
+// 502: errores de una ejecución de agente (`error.codigo` de una ejecución FALLIDA o `error` de un paso). No son
+// respuestas HTTP: se ven en el historial y el detalle de ejecuciones (docs/mensajes.md).
+const MENSAJES_EJECUCION: Record<string, string> = {
+  SIN_HERRAMIENTAS: 'Sin herramientas disponibles',
+  REPORTE_INVALIDO: 'El agente no logró armar un reporte válido.',
+  EJECUCION_TIEMPO_AGOTADO: 'El agente superó el tiempo máximo de 3 minutos.',
+  INTERRUMPIDA: 'La ejecución se interrumpió porque el servicio se reinició.',
+  HERRAMIENTA_NO_PERMITIDA: 'El agente pidió una herramienta que no le corresponde; se ignoró.',
+  ARGUMENTO_INVALIDO: 'El agente pidió datos con parámetros no válidos; se ignoró.',
+  OBRA_NO_ENCONTRADA: 'La obra pedida no existe.',
+  ERROR_INTERNO: 'La consulta falló en el servicio.',
+};
+
+/** Texto de un error de ejecución o de paso; si el código no se conoce, el que vino del servicio de IA. */
+export function mensajeErrorEjecucion(codigo: string, mensaje?: string): string {
+  return MENSAJES_EJECUCION[codigo] ?? mensaje ?? codigo;
+}
+
+/** Errores por campo de una respuesta `400` o `422` (`extensions.errores[]`, docs/mensajes.md). */
+export function erroresDeCampo(error: unknown): { campo: string; mensaje: string }[] {
+  if (!CombinedGraphQLErrors.is(error)) return [];
+  for (const e of error.errors) {
+    const errores = e.extensions?.['errores'];
+    if (Array.isArray(errores)) {
+      return errores.filter(
+        (x): x is { campo: string; mensaje: string } => typeof x?.campo === 'string' && typeof x?.mensaje === 'string',
+      );
+    }
+  }
+  return [];
 }
