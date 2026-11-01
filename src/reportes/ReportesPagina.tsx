@@ -11,7 +11,7 @@ import { AvisoSinConexion } from '../compartido/AvisoSinConexion';
 import { codigoDeError, mensajeDeError } from '../nucleo/errores';
 import { useSesion } from '../nucleo/sesion';
 import { AtajosReportes } from './AtajosReportes';
-import { exportarExcel } from './exportar';
+import { exportarCsv, exportarExcel } from './exportar';
 import { PanelPedido } from './PanelPedido';
 import {
   CONSULTAR_REPORTE,
@@ -99,9 +99,14 @@ export function ReportesPagina() {
           consulta={consulta}
           pedido={textoPedido}
           acciones={
-            <Button variant="outlined" size="small" startIcon={<DownloadIcon />} onClick={() => void exportarExcel(consulta, contexto)}>
-              Exportar a Excel
-            </Button>
+            <>
+              <Button variant="outlined" size="small" startIcon={<DownloadIcon />} onClick={() => void exportarExcel(consulta, contexto)}>
+                Exportar a Excel
+              </Button>
+              <Button variant="outlined" size="small" startIcon={<DownloadIcon />} onClick={() => void exportarCsv(consulta)}>
+                Exportar a CSV
+              </Button>
+            </>
           }
         />
       );

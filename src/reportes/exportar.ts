@@ -110,3 +110,45 @@ export async function exportarExcel(consulta: ConsultaReporte, contexto: Context
   const xlsx = await import('xlsx');
   xlsx.writeFile(crearLibroExcel(xlsx, consulta, contexto), nombreArchivo(consulta, 'xlsx'), { compression: true });
 }
+
+/** Celda para el CSV: números con punto decimal, fechas `AAAA-MM-DD`, booleanos «Sí»/«No» y textos protegidos. */
+function celdaCsv(valor: string | null, tipo: TipoColumna): CellObject | undefined {
+  if (valor === null || valor === '') return undefined;
+  if (tipo === 'FECHA' && !Number.isNaN(Date.parse(valor))) return { t: 's', v: fechaIso(valor) };
+  if (tipo === 'NUMERO' || tipo === 'MONTO' || tipo === 'PORCENTAJE') {
+    const numero = Number(valor);
+    return Number.isFinite(numero) ? { t: 'n', v: numero } : { t: 's', v: protegerTexto(valor) };
+  }
+  return celdaExcel(valor, tipo);
+}
+
+/** Marca de orden de bytes: así Excel lee el CSV como UTF-8 (con tildes). */
+export const BOM = '﻿';
+
+/** Texto del CSV: solo la tabla, separada por comas, con BOM (criterio 13). */
+export function textoCsv(xlsx: Xlsx, consulta: ConsultaReporte): string {
+  const hoja = hojaDesdeCeldas(xlsx, [
+    consulta.columnas.map((c) => texto(c.titulo)),
+    ...consulta.filas.map((fila) => consulta.columnas.map((c, i) => celdaCsv(fila[i] ?? null, c.tipo))),
+  ]);
+  return BOM + xlsx.utils.sheet_to_csv(hoja, { FS: ',', RS: '\r\n' });
+}
+
+/** Descarga un archivo armado en el navegador. */
+function descargar(contenido: Blob, nombre: string) {
+  const url = URL.createObjectURL(contenido);
+  const enlace = document.createElement('a');
+  enlace.href = url;
+  enlace.download = nombre;
+  enlace.style.display = 'none';
+  document.body.append(enlace);
+  enlace.click();
+  enlace.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+/** Genera y descarga el `.csv` en UTF-8 (criterio 13). */
+export async function exportarCsv(consulta: ConsultaReporte): Promise<void> {
+  const xlsx = await import('xlsx');
+  descargar(new Blob([textoCsv(xlsx, consulta)], { type: 'text/csv;charset=utf-8' }), nombreArchivo(consulta, 'csv'));
+}

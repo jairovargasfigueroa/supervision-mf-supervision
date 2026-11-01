@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import * as XLSX from 'xlsx';
-import { crearLibroExcel, fechaIso, nombreArchivo, protegerTexto } from './exportar';
+import { crearLibroExcel, fechaIso, nombreArchivo, protegerTexto, textoCsv } from './exportar';
 import type { ConsultaReporte } from './reportes.graphql';
 
 const CONSULTA: ConsultaReporte = {
@@ -107,5 +107,24 @@ describe('exportarExcel (503, criterios 12 y 14)', () => {
   it('protege solo los textos que empiezan con =, +, - o @', () => {
     expect(['=1+1', '+591', '-x', '@a', 'a=b', ''].map(protegerTexto)).toEqual(["'=1+1", "'+591", "'-x", "'@a", 'a=b', '']);
     expect(fechaIso('2027-03-02T03:30:00Z')).toBe('2027-03-01');
+  });
+});
+
+describe('exportarCsv (503, criterios 13 y 14)', () => {
+  it('genera solo la tabla, en UTF-8 con BOM, con punto decimal, fechas AAAA-MM-DD y textos tipo fórmula protegidos', () => {
+    const csv = textoCsv(XLSX, CONSULTA);
+    expect(csv.startsWith('﻿')).toBe(true);
+    expect(csv.slice(1).split('\r\n')).toEqual([
+      'Fecha,Obra,Cantidad,Monto neto,Avance %,Superó el stock,Último motivo',
+      `2027-03-18,Edificio Las Palmas,40.5,2511,32.5,Sí,"'=HYPERLINK(""http://x"")"`,
+      "2027-03-02,'@Obra rara,-3,,,No,",
+    ]);
+    expect(nombreArchivo(CONSULTA, 'csv')).toBe('reporte-movimientos-2027-03-20-1005.csv');
+  });
+
+  it('las tildes sobreviven a la codificación UTF-8', async () => {
+    const bytes = new TextEncoder().encode(textoCsv(XLSX, CONSULTA));
+    expect(Array.from(bytes.slice(0, 3))).toEqual([0xef, 0xbb, 0xbf]);
+    expect(new TextDecoder().decode(bytes)).toContain('Superó el stock');
   });
 });
