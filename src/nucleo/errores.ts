@@ -73,3 +73,31 @@ export function mensajeDeError(error: unknown): string {
   if (CombinedGraphQLErrors.is(error) || ServerError.is(error)) return MENSAJES['ERROR_INTERNO'];
   return SIN_CONEXION;
 }
+
+// 503: textos de la pantalla «Reportes» (docs/mensajes.md, «IA»). En reportes, SERVICIO_NO_DISPONIBLE y
+// TIEMPO_AGOTADO tienen su texto propio.
+
+/** INTENCION_NO_RECONOCIDA y RECETA_INVALIDA (503, criterios 6 y 7). */
+export const MENSAJE_NO_ENCONTRE_REPORTE = 'No encontré un reporte para tu pedido';
+const REPORTES_NO_DISPONIBLES = 'El servicio de reportes no está disponible; intenta de nuevo';
+
+const MENSAJES_REPORTES: Record<string, string> = {
+  TEXTO_INVALIDO: 'El pedido debe tener entre 3 y 500 caracteres.',
+  INTENCION_NO_RECONOCIDA: MENSAJE_NO_ENCONTRE_REPORTE,
+  RECETA_INVALIDA: MENSAJE_NO_ENCONTRE_REPORTE,
+  DEMASIADAS_CONSULTAS: 'Demasiadas consultas; espera un momento',
+  LLM_NO_DISPONIBLE: REPORTES_NO_DISPONIBLES,
+  REPORTES_NO_DISPONIBLES: REPORTES_NO_DISPONIBLES,
+  SERVICIO_NO_DISPONIBLE: REPORTES_NO_DISPONIBLES,
+  TIEMPO_AGOTADO: 'El reporte tardó demasiado; intenta de nuevo',
+};
+
+/** El pedido no corresponde al catálogo: se muestran los conjuntos, ejemplos y reportes comunes. */
+export function esPedidoNoReconocido(codigo: string | undefined): boolean {
+  return codigo === 'INTENCION_NO_RECONOCIDA' || codigo === 'RECETA_INVALIDA';
+}
+
+/** Mensaje de un error al pedir un reporte; los códigos que no son de reportes, como en el resto del área. */
+export function mensajeErrorReporte(error: unknown, codigo: string | undefined = codigoDeError(error)): string {
+  return (codigo && MENSAJES_REPORTES[codigo]) || mensajeDeError(error);
+}

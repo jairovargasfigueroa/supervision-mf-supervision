@@ -2,6 +2,7 @@ import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
+import type { ReactNode } from 'react';
 import {
   createBrowserHistory,
   createRootRoute,
@@ -14,24 +15,42 @@ import {
 } from '@tanstack/react-router';
 import { EstadoVacio } from './compartido/EstadoVacio';
 import { DictadoPagina } from './dictado/DictadoPagina';
+import { puedeUsarReportes, useRoles } from './nucleo/permisos';
+import { ReportesPagina } from './reportes/ReportesPagina';
 import { RiesgoPagina } from './riesgo/RiesgoPagina';
 import { TableroPagina } from './tablero/TableroPagina';
 
 // Rutas internas del microfrontend (docs/estructura.md). El shell deja /supervision/** a este microfrontend;
 // el router usa basepath /supervision y su pantalla inicial es el tablero (009). /supervision/riesgo es la
-// pantalla «Riesgo de retraso» (402) y /supervision/dictado la de «Dictado» (302), con sus enlaces en el menú interno.
+// pantalla «Riesgo de retraso» (402), /supervision/dictado la de «Dictado» (302) y /supervision/reportes la de
+// «Reportes» (503, solo admin y gerente), con sus enlaces en el menú interno. Cada sección dice qué roles la ven:
+// sin permiso no aparece en el menú y, si se abre por la dirección, muestra el aviso de permiso.
 
-export const SECCIONES = [
+interface Seccion {
+  ruta: string;
+  etiqueta: string;
+  /** Sin esto, la ven todos los roles del área (admin, gerente y residente). */
+  permitido?: (roles: readonly string[]) => boolean;
+}
+
+export const SECCIONES: readonly Seccion[] = [
   { ruta: '/', etiqueta: 'Tablero' },
   { ruta: '/riesgo', etiqueta: 'Riesgo de retraso' },
   { ruta: '/dictado', etiqueta: 'Dictado' },
-] as const;
+  { ruta: '/reportes', etiqueta: 'Reportes', permitido: puedeUsarReportes },
+];
+
+/** Secciones del menú interno que ve el usuario. */
+export function seccionesVisibles(roles: readonly string[]): Seccion[] {
+  return SECCIONES.filter((s) => !s.permitido || s.permitido(roles));
+}
 
 function Area() {
   const { pathname } = useLocation();
   const navegar = useNavigate();
   const ruta = pathname.replace(/\/$/, '') || '/';
-  const actual = SECCIONES.find((s) => s.ruta === ruta)?.ruta ?? false;
+  const secciones = seccionesVisibles(useRoles());
+  const actual = secciones.find((s) => s.ruta === ruta)?.ruta ?? false;
 
   return (
     <Box sx={{ p: { xs: 2, sm: 3 } }}>
@@ -39,9 +58,11 @@ function Area() {
         value={actual}
         onChange={(_, destino: string) => void navegar({ to: destino })}
         aria-label="Secciones de supervisión"
+        variant="scrollable"
+        scrollButtons="auto"
         sx={{ mb: 2, borderBottom: 1, borderColor: 'divider' }}
       >
-        {SECCIONES.map((s) => (
+        {secciones.map((s) => (
           <Tab key={s.ruta} value={s.ruta} label={s.etiqueta} />
         ))}
       </Tabs>
@@ -68,7 +89,28 @@ const riesgo = createRoute({ getParentRoute: () => raiz, path: '/riesgo', compon
 
 const dictado = createRoute({ getParentRoute: () => raiz, path: '/dictado', component: DictadoPagina });
 
-const arbol = raiz.addChildren([tablero, riesgo, dictado]);
+/** Pantalla solo para algunos roles: si no le corresponde, el aviso de permiso (docs/mensajes.md, SIN_PERMISO). */
+function ConPermiso({ permitido, children }: { permitido: (roles: readonly string[]) => boolean; children: ReactNode }) {
+  const roles = useRoles();
+  if (permitido(roles)) return <>{children}</>;
+  return (
+    <Paper variant="outlined">
+      <EstadoVacio texto="No tienes permiso para hacer esta acción." />
+    </Paper>
+  );
+}
+
+const reportes = createRoute({
+  getParentRoute: () => raiz,
+  path: '/reportes',
+  component: () => (
+    <ConPermiso permitido={puedeUsarReportes}>
+      <ReportesPagina />
+    </ConPermiso>
+  ),
+});
+
+const arbol = raiz.addChildren([tablero, riesgo, dictado, reportes]);
 
 /** Crea el router del área; en pruebas recibe un historial en memoria. */
 export function crearRouter(historial: RouterHistory = createBrowserHistory()) {

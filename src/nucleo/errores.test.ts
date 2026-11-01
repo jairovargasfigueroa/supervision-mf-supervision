@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CombinedGraphQLErrors, ServerError } from '@apollo/client/errors';
-import { avisoNoDisponible, codigoDeError, mensajeDeError } from './errores';
+import { avisoNoDisponible, codigoDeError, esPedidoNoReconocido, mensajeDeError, mensajeErrorReporte } from './errores';
 
 const errorGraphql = (codigo?: string) =>
   new CombinedGraphQLErrors({
@@ -38,5 +38,24 @@ describe('errores', () => {
     expect(avisoNoDisponible('obras')).toBe('Datos de Obras no disponibles');
     expect(avisoNoDisponible('materiales')).toBe('Datos de Materiales no disponibles');
     expect(avisoNoDisponible('finanzas')).toBe('Datos de Finanzas no disponibles');
+  });
+});
+
+describe('mensajes de reportes (503)', () => {
+  const conCodigo = (codigo: string) =>
+    new CombinedGraphQLErrors({ data: null, errors: [{ message: 'x', extensions: { codigo, servicio: 'ia' } }] });
+
+  it('cada código tiene el texto de docs/mensajes.md', () => {
+    expect(mensajeErrorReporte(conCodigo('INTENCION_NO_RECONOCIDA'))).toBe('No encontré un reporte para tu pedido');
+    expect(mensajeErrorReporte(conCodigo('RECETA_INVALIDA'))).toBe('No encontré un reporte para tu pedido');
+    expect(mensajeErrorReporte(conCodigo('DEMASIADAS_CONSULTAS'))).toBe('Demasiadas consultas; espera un momento');
+    for (const codigo of ['LLM_NO_DISPONIBLE', 'REPORTES_NO_DISPONIBLES', 'SERVICIO_NO_DISPONIBLE']) {
+      expect(mensajeErrorReporte(conCodigo(codigo))).toBe('El servicio de reportes no está disponible; intenta de nuevo');
+    }
+    expect(mensajeErrorReporte(conCodigo('TIEMPO_AGOTADO'))).toBe('El reporte tardó demasiado; intenta de nuevo');
+    expect(mensajeErrorReporte(conCodigo('TEXTO_INVALIDO'))).toBe('El pedido debe tener entre 3 y 500 caracteres.');
+    expect(mensajeErrorReporte(conCodigo('SIN_PERMISO'))).toBe('No tienes permiso para hacer esta acción.');
+    expect(esPedidoNoReconocido('RECETA_INVALIDA')).toBe(true);
+    expect(esPedidoNoReconocido('LLM_NO_DISPONIBLE')).toBe(false);
   });
 });
