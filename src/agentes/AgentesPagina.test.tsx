@@ -153,3 +153,36 @@ describe('AgentesPagina (502): IA no responde (criterio 21)', () => {
     expect(await screen.findByRole('region', { name: 'Seguimiento de obras' })).toBeTruthy();
   });
 });
+
+describe('AgentesPagina (502): textos del agente y sin conexión', () => {
+  it('la misión y los textos con etiquetas HTML de las tarjetas se muestran como texto', async () => {
+    sesion(['gerente']);
+    dibujar('/supervision/agentes', [
+      agentes([{ ...SEGUIMIENTO, mision: '<b>Revisa</b> las obras <img src=x>' }]),
+      sugerencias([]),
+      hallazgos(),
+      ejecuciones(),
+    ]);
+    const tarjeta = within(await screen.findByRole('region', { name: 'Seguimiento de obras' }));
+    expect(tarjeta.getByText('<b>Revisa</b> las obras <img src=x>')).toBeTruthy();
+    expect(document.querySelector('b, img')).toBeNull();
+  });
+
+  it('sin conexión muestra las tarjetas y las sugerencias guardadas en el equipo (104)', async () => {
+    sesion(['residente']);
+    window.plataforma!.conexion = { enLinea: false, reportarFallo: vi.fn() };
+    window.plataforma!.almacen = {
+      guardarConsulta: vi.fn().mockResolvedValue(undefined),
+      leerConsulta: vi.fn(async (clave: string) => {
+        const guardadoEn = '2027-04-20T22:00:00Z';
+        if (clave.startsWith('Agentes')) return { datos: { agentes: [SEGUIMIENTO] }, guardadoEn };
+        if (clave.startsWith('Sugerencias')) return { datos: { sugerencias: [SUGERENCIA] }, guardadoEn };
+        return null;
+      }) as never,
+    };
+    dibujar('/supervision/agentes');
+    expect((await screen.findAllByText('Sin conexión · datos del 20/04/2027 18:00')).length).toBeGreaterThan(0);
+    expect(await screen.findByRole('region', { name: 'Seguimiento de obras' })).toBeTruthy();
+    expect(await screen.findByRole('listitem', { name: 'Sugerencia para Condominio Las Lomas' })).toBeTruthy();
+  });
+});

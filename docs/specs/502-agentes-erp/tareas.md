@@ -11,4 +11,4 @@ Marca cada tarea al terminarla (con sus pruebas y su commit).
 - [x] `ListaSugerencias` con filtros y diálogos de aprobar (comentario opcional) y rechazar (motivo obligatorio con contador)
 - [x] `HistorialEjecuciones` y `DetalleEjecucion` (pasos con su servidor, hallazgos y proveedor y modelo de lenguaje), solo `admin` y `gerente`
 - [x] Manejo de «No disponible por el momento» y de los códigos `EJECUCION_EN_CURSO` y `SUGERENCIA_YA_DECIDIDA`
-- [ ] Pruebas (incluida una que comprueba que un texto con etiquetas HTML se muestra como texto)
+- [x] Pruebas (incluida una que comprueba que un texto con etiquetas HTML se muestra como texto)
