@@ -14,6 +14,7 @@
   - En las capas 4 y 5: predicciones, agentes, sugerencias y reportes por voz.
 - 302: modelo Whisper `onnx-community/whisper-base` (pesos `q8`) desde Hugging Face (o desde la ruta de `DICTADO_MODELO_URL`, variable de compilación; `DICTADO_MODELO=onnx-community/whisper-tiny` para equipos lentos), descargado por el navegador y guardado con la Cache API. El motor de onnxruntime-web (`.wasm`) lo trae transformers.js de su CDN (jsDelivr), su valor por defecto. El audio no sale del navegador.
 - Shell: sesión del usuario en `window.plataforma.sesion` (token con `obtenerToken()`, roles en `usuario.roles`) y URL del gateway en `window.plataforma.configuracion.gatewayUrl`.
+  - 601: esa es la **única** fuente de la dirección del gateway (el shell la toma de su `configuracion.json` al publicar); abierto solo (desarrollo, 4203), `http://localhost:4000/graphql`. Este microfrontend no tiene configuración propia de direcciones.
   - 104: `sesion.sinConexion` (en ese modo `obtenerToken()` rechaza con `Error('SIN_CONEXION')`), `window.plataforma.conexion` (`{ enLinea, reportarFallo() }` y el evento `plataforma:conexion` con `detail: { enLinea }`) y `window.plataforma.almacen` (`guardarConsulta`, `leerConsulta`; separado por usuario). Si no existen (microfrontend abierto solo), trabaja en línea y sin guardar nada.
 
 ## Expone
@@ -21,3 +22,7 @@
 - Web Component cargado por Native Federation (`./Bootstrap` registra la etiqueta), montado por el shell en su ruta `/supervision/**`.
 - 302, dentro del microfrontend: componente `CampoDictado` en `src/dictado/` (texto editable + micrófono), que usa la pantalla «Reportes» de la 503. El worker de Whisper se publica como `whisper.worker.js` junto al código del microfrontend; dentro del shell se crea con un worker local (`blob:`) que lo importa (un worker no puede venir de otro origen; el servidor del microfrontend tiene CORS abierto).
 - Navegación hacia el shell: al pulsar una obra del tablero cambia la dirección a `/obras/:id` con `window.history.pushState` y emite `popstate`; el router del shell abre el detalle de la obra en el área Obras (009, criterio 4).
+
+## Publicación (601)
+
+Se compila una vez (`npm run build`, carpeta `dist/`, con `dist/whisper.worker.js` del dictado) y se publica como archivos estáticos; no escribe ningún archivo al publicar (las direcciones las da el shell). Reglas del servidor de estáticos: CORS en `remoteEntry.json` y los `.js` (incluido `whisper.worker.js`, que el shell importa desde un worker `blob:`) para el origen del shell. `DICTADO_MODELO_URL` y `DICTADO_MODELO` (302) siguen siendo opcionales al compilar: sin ellas, el modelo por defecto desde Hugging Face (así compila el CI).

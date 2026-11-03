@@ -1,11 +1,9 @@
-# 601 · Contenedores y CI/CD · tareas de `frontend/mf-supervision`
+# 601 · Preparar el despliegue · tareas de `frontend/mf-supervision`
 
-Requisitos y diseño: `docs/specs/601-contenedores-ci/` de la carpeta que agrupa los proyectos. Contratos: `docs/contratos.md` de este proyecto.
+Requisitos y diseño: `docs/specs/601-contenedores-ci/` de la carpeta que agrupa los proyectos. Al implementarla, estas tareas reemplazan a `frontend/mf-supervision/docs/specs/601-contenedores-ci/tareas.md` (eran del borrador anterior).
 
 Marca cada tarea al terminarla (con sus pruebas y su commit).
 
-- [ ] Valores de producción al compilar con `define` en `build.mjs`: `GATEWAY_URL` (propuesto) y `DICTADO_MODELO_URL` (302; vacío = modelo desde Hugging Face)
-- [ ] `staticwebapp.config.json`: `navigationFallback` y encabezado `Access-Control-Allow-Origin` del shell para `remoteEntry.json` y los `.js`
-- [ ] `Dockerfile` (`node:24-alpine` para compilar, `nginxinc/nginx-unprivileged:1.29-alpine` para servir) con `nginx.conf` propio y `.dockerignore`
-- [ ] `.github/workflows/ci-cd.yml`: pruebas y build; imagen nginx en GHCR; despliegue de los archivos estáticos con `Azure/static-web-apps-deploy@v1`
-- [ ] Comprobar: la imagen sirve la aplicación en el puerto 8080 sin `root`
+- [x] Aplicar «Cambios a contratos y datos» que tocan este proyecto (`docs/`, `CLAUDE.md`, `.env.example`)
+- [ ] Revisar que la dirección del gateway solo salga de `window.plataforma.configuracion` (respaldo de desarrollo); el *worker* de Whisper queda en la carpeta compilada
+- [ ] `.github/workflows/ci.yml`: job `prueba` (tipos, pruebas y compilación) y job `archivos`
