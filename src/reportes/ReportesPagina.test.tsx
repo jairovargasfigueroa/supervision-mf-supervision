@@ -122,7 +122,7 @@ async function pedir(texto: string) {
 describe('ReportesPagina (503): acceso', () => {
   it('el gerente llega desde el menú interno «Reportes»', async () => {
     sesion(['gerente']);
-    const nav = dibujar('/supervision/dictado', [catalogo(), historial()]);
+    const nav = dibujar('/supervision/riesgo', [catalogo(), historial()]);
     fireEvent.click(await screen.findByRole('tab', { name: 'Reportes' }));
     expect(await screen.findByRole('heading', { name: 'Reportes', level: 1 })).toBeTruthy();
     expect(nav.location.pathname).toBe('/supervision/reportes');
@@ -134,7 +134,7 @@ describe('ReportesPagina (503): acceso', () => {
     expect(await screen.findByText('No tienes permiso para hacer esta acción.')).toBeTruthy();
     expect(screen.queryByRole('heading', { name: 'Reportes' })).toBeNull();
     expect(screen.queryByRole('tab', { name: 'Reportes' })).toBeNull();
-    expect(screen.getByRole('tab', { name: 'Dictado' })).toBeTruthy();
+    expect(screen.getByRole('tab', { name: 'Agentes' })).toBeTruthy();
   });
 });
 

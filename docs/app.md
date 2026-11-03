@@ -5,7 +5,7 @@
 | Pantalla | Quién | Caso de uso | Etapa |
 |---|---|---|---|
 | Tablero de obras (avance, plazo, alertas; cobros vencidos solo administración y gerente) | Administración, gerente, residente (sus obras) | Consultar tablero | Base |
-| Dictado (`/supervision/dictado`: prueba del componente de voz a texto con «Copiar texto»; se puede quitar al terminar la 503) | Gerente, residente, administración | Voz a texto en el navegador | Capa 5 (302) |
+| (Se quitó la pantalla de prueba «Dictado», `/supervision/dictado`, el 03/11/2026: el dictado vive en «Reportes», 302 criterio 11) | — | — | — |
 | Riesgo de retraso por obra (`/supervision/riesgo`, spec 402; enlace «Riesgo de retraso» en el menú interno) | Administración, gerente, residente (sus obras) | Predicciones | Capa 4 |
 | Agentes (`/supervision/agentes`, spec 502): tarjetas de los tres agentes, sugerencias para aprobar o rechazar, y («Ejecutar ahora», historial y detalle con los pasos, su servidor y el modelo de lenguaje) solo administración y gerente; el residente no ve Control de cobros | Administración, gerente, residente (sus obras) | Agentes | Capa 5 |
 | Reportes (`/supervision/reportes`, spec 503): dictar o escribir el pedido, reportes comunes, tabla con resumen, historial de las últimas 10 consultas, exportar a Excel y CSV | Administración, gerente | Reportes generativos | Capa 5 |
