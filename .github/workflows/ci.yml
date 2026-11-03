@@ -32,6 +32,8 @@ jobs:
         run: npm test
       - name: Compilación
         run: npm run build
+      - name: Worker del dictado en la carpeta compilada (302)
+        run: test -s dist/whisper.worker.js
 
   archivos:
     needs: prueba
@@ -47,6 +49,8 @@ jobs:
       - run: npm ci
       - name: Compilación
         run: npm run build
+      - name: Worker del dictado en la carpeta compilada (302)
+        run: test -s dist/whisper.worker.js
       - name: Carpeta compilada como artefacto
         uses: actions/upload-artifact@v7
         with:

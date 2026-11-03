@@ -6,4 +6,4 @@ Marca cada tarea al terminarla (con sus pruebas y su commit).
 
 - [x] Aplicar «Cambios a contratos y datos» que tocan este proyecto (`docs/`, `CLAUDE.md`, `.env.example`)
 - [x] Revisar que la dirección del gateway solo salga de `window.plataforma.configuracion` (respaldo de desarrollo); el *worker* de Whisper queda en la carpeta compilada
-- [ ] `.github/workflows/ci.yml`: job `prueba` (tipos, pruebas y compilación) y job `archivos`
+- [x] `.github/workflows/ci.yml`: job `prueba` (tipos, pruebas y compilación) y job `archivos`
