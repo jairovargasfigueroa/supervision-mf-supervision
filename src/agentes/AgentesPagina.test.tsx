@@ -93,7 +93,7 @@ const SUGERENCIA = {
 describe('AgentesPagina (502): acceso', () => {
   it.each(['gerente', 'admin', 'residente'])('%s llega desde el menú interno «Agentes»', async (rol) => {
     sesion([rol]);
-    const historial = dibujar('/supervision/dictado');
+    const historial = dibujar('/supervision/riesgo');
     fireEvent.click(await screen.findByRole('tab', { name: 'Agentes' }));
     expect(await screen.findByRole('heading', { name: 'Agentes', level: 1 })).toBeTruthy();
     expect(historial.location.pathname).toBe('/supervision/agentes');
