@@ -32,6 +32,10 @@ npm test             # Vitest
 - `build.mjs` compila con `runEsBuildBuilder` y, con `--dev`, sirve `dist/` y `public/` con CORS abierto para el shell.
 - Los estilos van dentro del Shadow DOM; no se cargan hojas globales.
 
+## Publicación (601)
+
+- Se compila **una vez** (`npm run build` → `dist/`, con `dist/whisper.worker.js`) y se publica como archivos estáticos (sin imagen Docker). La dirección del gateway sale de `window.plataforma.configuracion.gatewayUrl`, que publica el shell; sin el shell, la de desarrollo. CI en `.github/workflows/ci.yml`.
+
 ## Estructura
 
 Ver `docs/estructura.md` (obligatorio): `bootstrap.tsx` (Web Component con Shadow DOM, caché de Emotion y tema), `nucleo/` (sesión, configuración, formato), `compartido/` y una carpeta por área (`tablero/`, `riesgo/`, `dictado/`, `reportes/`, `agentes/`).

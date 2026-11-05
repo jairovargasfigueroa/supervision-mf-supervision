@@ -56,4 +56,12 @@ describe('configuracion', () => {
     expect(obtenerGatewayUrl()).toBe(GATEWAY_URL_DESARROLLO);
     expect(GATEWAY_URL_DESARROLLO).toBe('http://localhost:4000/graphql');
   });
+
+  it('usa la URL local si el shell no publica configuración o la deja vacía (601)', () => {
+    window.plataforma = {} as NonNullable<typeof window.plataforma>;
+    expect(obtenerGatewayUrl()).toBe(GATEWAY_URL_DESARROLLO);
+
+    window.plataforma = { configuracion: { gatewayUrl: '' } };
+    expect(obtenerGatewayUrl()).toBe(GATEWAY_URL_DESARROLLO);
+  });
 });
