@@ -4,13 +4,13 @@ Microfrontend del ERP para supervisión: tablero de obras (base) y, en la capa 5
 
 Parte de la «Plataforma de supervisión de obras». Si existe `../../CLAUDE.md` (carpeta que agrupa todos los proyectos), léelo primero: tiene las reglas transversales, el plan y los contratos generales.
 
-**Estado:** Native Federation configurado, tema MUI dentro del Shadow DOM, `formato.ts`, estados vacío y error, y lectura de la sesión del shell (`nucleo/sesion.ts`, `nucleo/configuracion.ts`; sin shell muestra «Abre esta pantalla desde el ERP») (fase 1); sin pantallas del negocio. No implementes una funcionalidad sin su especificación aprobada en `docs/specs/`.
+**Estado:** Native Federation configurado, tema MUI dentro del Shadow DOM, `formato.ts`, estados vacío y error, y lectura de la sesión del shell (`nucleo/sesion.ts`, `nucleo/configuracion.ts`; sin shell muestra «Abre esta pantalla desde el ERP») (fase 1); tablero de obras con Apollo Client y TanStack Router/Table (009); 104: tablero con respaldo en el almacén del shell (`useConsultaConRespaldo`, aviso «Sin conexión · datos del…»); 402: tarjeta «Riesgo alto (modelo)» y columna «Riesgo (modelo)» en el tablero, y pantalla `/supervision/riesgo` (lista por probabilidad, historial en SVG y «Sobre el modelo»); 403: tarjeta «Consumos atípicos por revisar» y columna «Atípicos» en el tablero; 302: componente de dictado `CampoDictado` (Whisper base `q8` en un Web Worker con transformers.js, `src/dictado/`), que usa la pantalla de Reportes (la pantalla de prueba `/supervision/dictado` se quitó el 03/11/2026); 503: pantalla `/supervision/reportes` (pedido dictado o escrito, reportes comunes, resultado con resumen y tabla, historial, exportar a Excel y CSV con SheetJS); 502: vista `/supervision/agentes` (tarjetas con «Ejecutar ahora», sugerencias con aprobar y rechazar, historial y detalle de ejecuciones para `admin` y `gerente`). No implementes una funcionalidad sin su especificación aprobada en `docs/specs/`.
 
 ## Stack
 
 - Node 24 · React 19 · TypeScript 6
 - Native Federation 4 con el **adaptador esbuild** (`@softarc/native-federation` 4.7 + `@softarc/native-federation-esbuild` 4.2) y su preset oficial de React
-- Previsto: Apollo Client 4 (GraphQL hacia el gateway); capa 3: voz a texto en el navegador (Whisper); capa 5: exportar a Excel
+- Apollo Client 4 (GraphQL hacia el gateway, `nucleo/apollo.ts` con el token del shell); transformers.js 4 (Whisper en el navegador, 302; worker compilado aparte con esbuild en `build.mjs`); SheetJS 0.20.3 (exportar a Excel y CSV, 503)
 - Puerto: `4203` (`PORT`)
 
 ## Comandos
@@ -32,9 +32,13 @@ npm test             # Vitest
 - `build.mjs` compila con `runEsBuildBuilder` y, con `--dev`, sirve `dist/` y `public/` con CORS abierto para el shell.
 - Los estilos van dentro del Shadow DOM; no se cargan hojas globales.
 
+## Publicación (601)
+
+- Se compila **una vez** (`npm run build` → `dist/`, con `dist/whisper.worker.js`) y se publica como archivos estáticos (sin imagen Docker). La dirección del gateway sale de `window.plataforma.configuracion.gatewayUrl`, que publica el shell; sin el shell, la de desarrollo. CI en `.github/workflows/ci.yml`.
+
 ## Estructura
 
-Ver `docs/estructura.md` (obligatorio): `bootstrap.tsx` (Web Component con Shadow DOM, caché de Emotion y tema), `nucleo/` (sesión, configuración, formato), `compartido/` y una carpeta por área (`tablero/`; en la capa 5 `agentes/` y `reportes-voz/`).
+Ver `docs/estructura.md` (obligatorio): `bootstrap.tsx` (Web Component con Shadow DOM, caché de Emotion y tema), `nucleo/` (sesión, configuración, formato), `compartido/` y una carpeta por área (`tablero/`, `riesgo/`, `dictado/`, `reportes/`, `agentes/`).
 
 ## Reglas del proyecto
 

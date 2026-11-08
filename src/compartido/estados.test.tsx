@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { EstadoError } from './EstadoError';
 import { EstadoVacio } from './EstadoVacio';
 
@@ -24,7 +24,7 @@ describe('EstadoError', () => {
   it('muestra el aviso y reintenta al pulsar el botón', () => {
     const alReintentar = vi.fn();
     render(<EstadoError alReintentar={alReintentar} />);
-    expect(screen.getByRole('alert').textContent).toContain('No disponible por el momento.');
+    expect(within(screen.getByRole('alert')).getByText('No disponible por el momento')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }));
     expect(alReintentar).toHaveBeenCalledOnce();
   });
