@@ -54,4 +54,17 @@ describe('PanelPedido (503, criterios 1 a 3)', () => {
     expect(pedidoValido('abc')).toBe(true);
     expect(pedidoValido('  ab  ')).toBe(false);
   });
+
+  it('505: con una conversación abierta acepta desde 1 carácter y muestra los botones que se le pasen', () => {
+    const alConsultar = vi.fn();
+    render(
+      <PanelPedido texto="2" onCambio={vi.fn()} alConsultar={alConsultar} minimo={1} acciones={<button type="button">Nueva consulta</button>} />,
+    );
+    expect(consultar().disabled).toBe(false);
+    fireEvent.click(consultar());
+    expect(alConsultar).toHaveBeenCalledWith('2');
+    expect(screen.getByRole('button', { name: 'Nueva consulta' })).toBeTruthy();
+    expect(pedidoValido(' ', 1)).toBe(false);
+    expect(pedidoValido('x'.repeat(501), 1)).toBe(false);
+  });
 });

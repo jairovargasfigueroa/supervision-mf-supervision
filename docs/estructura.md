@@ -24,11 +24,12 @@ src/
   dictado/      CampoDictado.tsx (campo con micrófono), useDictado.ts (máquina de estados, motor que habla con el worker
                 y creación del worker), grabador.ts (MediaRecorder → Float32Array 16 kHz), whisper.worker.ts
                 (transformers.js, entrada aparte en build.mjs → dist/whisper.worker.js), soporte.ts (302; la pantalla de prueba DictadoPagina.tsx se quitó al terminar la 503)
-  reportes/     ReportesPagina.tsx (505: la conversación, con sus turnos y el conversacionId), PanelPedido.tsx
-                (CampoDictado + contador + «Consultar»), AtajosReportes.tsx, ResultadoReporte.tsx (formato por tipo),
-                AclaracionReporte.tsx (505: pregunta con sus opciones en botones), HistorialConsultas.tsx, exportar.ts
-                (exportarExcel y exportarCsv con SheetJS; 505: exportarPdf con jspdf + jspdf-autotable y exportarWord con
-                docx; cada librería se carga al exportar), reportes.graphql.ts (503 y 505)
+  reportes/     ReportesPagina.tsx (505: la conversación, con sus turnos y el conversacionId), conversacion.ts (505:
+                turnos y pedido de cada reporte), PanelPedido.tsx (CampoDictado + contador + «Consultar»; 505: mínimo
+                de 1 carácter con conversación y «Nueva consulta»), AtajosReportes.tsx, ResultadoReporte.tsx (formato
+                por tipo), PreguntaAclaracion.tsx (505: pregunta con sus opciones en botones), HistorialConsultas.tsx,
+                exportar.ts (exportarExcel y exportarCsv con SheetJS; 505: exportarPdf con jspdf + jspdf-autotable y
+                exportarWord con docx; cada librería se carga al exportar), reportes.graphql.ts (503 y 505)
   compartido/   TablaDatos.tsx, EstadoChip.tsx, EstadoVacio.tsx, EstadoError.tsx, AvisoSinConexion.tsx
 .github/workflows/ci.yml   # 601: tipos, pruebas y compilación; en main, dist/ como artefacto
 ```

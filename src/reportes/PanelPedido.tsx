@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
@@ -7,15 +8,21 @@ import { LARGO_MAXIMO_PEDIDO, LARGO_MINIMO_PEDIDO } from './reportes.graphql';
 
 // Pedido del reporte (503, criterios 1 a 3): el texto se dicta con el componente de la 302 (Whisper en el
 // navegador; al servidor solo llega el texto) o se escribe; se puede corregir y se envía con «Consultar».
-// Sin micrófono o sin modelo de voz el cuadro de texto sigue funcionando.
+// Sin micrófono o sin modelo de voz el cuadro de texto sigue funcionando. 505: dentro de una conversación el
+// mínimo baja a 1 carácter (para responder «sí» o elegir una opción escribiéndola).
 
-/** Texto de TEXTO_INVALIDO (docs/mensajes.md). */
-export const MENSAJE_LARGO = 'El pedido debe tener entre 3 y 500 caracteres.';
+/** Texto de TEXTO_INVALIDO (docs/mensajes.md) para el largo mínimo dado. */
+export function mensajeLargo(minimo: number = LARGO_MINIMO_PEDIDO): string {
+  return `El pedido debe tener entre ${minimo} y ${LARGO_MAXIMO_PEDIDO} caracteres.`;
+}
 
-/** El pedido que se envía (sin espacios a los lados) cumple el largo de 3 a 500. */
-export function pedidoValido(texto: string): boolean {
+/** Texto de TEXTO_INVALIDO de un pedido nuevo (docs/mensajes.md). */
+export const MENSAJE_LARGO = mensajeLargo();
+
+/** El pedido que se envía (sin espacios a los lados) cumple el largo: de 3 a 500, o desde `minimo`. */
+export function pedidoValido(texto: string, minimo: number = LARGO_MINIMO_PEDIDO): boolean {
   const largo = texto.trim().length;
-  return largo >= LARGO_MINIMO_PEDIDO && largo <= LARGO_MAXIMO_PEDIDO;
+  return largo >= minimo && largo <= LARGO_MAXIMO_PEDIDO;
 }
 
 interface Props {
@@ -24,11 +31,15 @@ interface Props {
   alConsultar: (texto: string) => void;
   /** Mientras se prepara un reporte no se puede pedir otro. */
   ocupado?: boolean;
+  /** Largo mínimo del texto: 3 para un pedido nuevo, 1 dentro de una conversación (505). */
+  minimo?: number;
+  /** Botones junto a «Consultar» (505: «Nueva consulta»). */
+  acciones?: ReactNode;
 }
 
-export function PanelPedido({ texto, onCambio, alConsultar, ocupado = false }: Props) {
+export function PanelPedido({ texto, onCambio, alConsultar, ocupado = false, minimo = LARGO_MINIMO_PEDIDO, acciones }: Props) {
   const largo = texto.trim().length;
-  const valido = pedidoValido(texto);
+  const valido = pedidoValido(texto, minimo);
   const fueraDeRango = largo > 0 && !valido;
 
   return (
@@ -56,18 +67,21 @@ export function PanelPedido({ texto, onCambio, alConsultar, ocupado = false }: P
         </Typography>
         {fueraDeRango && (
           <Typography variant="caption" sx={{ color: 'error.main' }}>
-            {MENSAJE_LARGO}
+            {mensajeLargo(minimo)}
           </Typography>
         )}
-        <Button
-          type="submit"
-          variant="contained"
-          startIcon={<SearchIcon />}
-          disabled={!valido || ocupado}
-          sx={{ ml: 'auto' }}
-        >
-          Consultar
-        </Button>
+        <Box sx={{ ml: 'auto', display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          {acciones}
+          <Button
+            type="submit"
+            variant="contained"
+            startIcon={<SearchIcon />}
+            disabled={!valido || ocupado}
+            sx={{ minHeight: 44 }}
+          >
+            Consultar
+          </Button>
+        </Box>
       </Box>
     </Box>
   );

@@ -98,7 +98,14 @@ const MENSAJES_REPORTES: Record<string, string> = {
   REPORTES_NO_DISPONIBLES: REPORTES_NO_DISPONIBLES,
   SERVICIO_NO_DISPONIBLE: REPORTES_NO_DISPONIBLES,
   TIEMPO_AGOTADO: 'El reporte tardó demasiado; intenta de nuevo',
+  // 505: la conversación no existe, expiró (30 min sin uso) o es de otro usuario
+  CONVERSACION_NO_ENCONTRADA: 'La conversación expiró: vuelve a hacer el pedido',
 };
+
+/** 505: la conversación ya no sirve; la pantalla empieza una nueva. */
+export function esConversacionExpirada(codigo: string | undefined): boolean {
+  return codigo === 'CONVERSACION_NO_ENCONTRADA';
+}
 
 /** El pedido no corresponde al catálogo: se muestran los conjuntos, ejemplos y reportes comunes. */
 export function esPedidoNoReconocido(codigo: string | undefined): boolean {
