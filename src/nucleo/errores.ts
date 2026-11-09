@@ -126,7 +126,7 @@ const MENSAJE_EJECUCION_FALLIDA = 'La ejecución falló por un error inesperado.
 const MENSAJES_EJECUCION: Record<string, string> = {
   SIN_HERRAMIENTAS: 'Sin herramientas disponibles',
   REPORTE_INVALIDO: 'El agente no logró armar un reporte válido.',
-  EJECUCION_TIEMPO_AGOTADO: 'El agente superó el tiempo máximo de 3 minutos.',
+  EJECUCION_TIEMPO_AGOTADO: 'El agente superó el tiempo máximo de 4 minutos.', // 505: 4 minutos
   INTERRUMPIDA: 'La ejecución se interrumpió porque el servicio se reinició.',
   LLM_NO_DISPONIBLE: 'El modelo de lenguaje no respondió.',
   ERROR_INTERNO: MENSAJE_EJECUCION_FALLIDA,
