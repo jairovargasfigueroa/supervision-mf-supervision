@@ -19,7 +19,7 @@ import {
 import { useSesion } from '../nucleo/sesion';
 import { AtajosReportes } from './AtajosReportes';
 import { pedidoDelReporte, type Turno } from './conversacion';
-import { exportarCsv, exportarExcel } from './exportar';
+import { exportarCsv, exportarExcel, exportarPdf, exportarWord, type ContextoExportacion } from './exportar';
 import { HistorialConsultas } from './HistorialConsultas';
 import { PanelPedido } from './PanelPedido';
 import { PreguntaAclaracion } from './PreguntaAclaracion';
@@ -50,6 +50,14 @@ export const MENSAJE_PREPARANDO = 'Preparando el reporte…';
 export const SUGERENCIA_ATAJOS = 'Mientras tanto puedes usar los reportes comunes, que no necesitan interpretar el pedido.';
 export const AYUDA_ATAJOS = 'Elige un ejemplo para cambiar tu pedido o usa uno de los reportes comunes.';
 export const NUEVA_CONSULTA = 'Nueva consulta';
+
+/** Botones de exportación de cada reporte (503, criterios 12 y 13; 505, criterio 18). */
+const EXPORTACIONES: { etiqueta: string; exportar: (consulta: ConsultaReporte, contexto: ContextoExportacion) => Promise<void> }[] = [
+  { etiqueta: 'Exportar a Excel', exportar: exportarExcel },
+  { etiqueta: 'Exportar a CSV', exportar: (consulta) => exportarCsv(consulta) },
+  { etiqueta: 'Exportar a PDF', exportar: exportarPdf },
+  { etiqueta: 'Exportar a Word', exportar: exportarWord },
+];
 
 /** Código propio del límite de 60 s del navegador; se muestra igual que TIEMPO_AGOTADO. */
 const TIEMPO_AGOTADO = 'TIEMPO_AGOTADO';
@@ -281,16 +289,18 @@ export function ReportesPagina() {
       <ResultadoReporte
         consulta={consulta}
         pedido={pedido}
-        acciones={
-          <>
-            <Button variant="outlined" size="small" startIcon={<DownloadIcon />} onClick={() => void exportarExcel(consulta, contexto)}>
-              Exportar a Excel
-            </Button>
-            <Button variant="outlined" size="small" startIcon={<DownloadIcon />} onClick={() => void exportarCsv(consulta)}>
-              Exportar a CSV
-            </Button>
-          </>
-        }
+        acciones={EXPORTACIONES.map(({ etiqueta, exportar }) => (
+          <Button
+            key={etiqueta}
+            variant="outlined"
+            size="small"
+            startIcon={<DownloadIcon />}
+            onClick={() => void exportar(consulta, contexto)}
+            sx={{ minHeight: 44 }}
+          >
+            {etiqueta}
+          </Button>
+        ))}
       />
     );
   };

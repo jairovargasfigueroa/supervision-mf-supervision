@@ -79,7 +79,7 @@ export function ResultadoReporte({ consulta, pedido, acciones }: Props) {
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
           {consulta.totalFilas === 1 ? '1 fila' : `${consulta.totalFilas} filas`}
         </Typography>
-        <Box sx={{ ml: 'auto', display: 'flex', gap: 1 }}>{acciones}</Box>
+        <Box sx={{ ml: 'auto', display: 'flex', gap: 1, flexWrap: 'wrap' }}>{acciones}</Box>
       </Box>
       <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>
         Pedido: {pedido}

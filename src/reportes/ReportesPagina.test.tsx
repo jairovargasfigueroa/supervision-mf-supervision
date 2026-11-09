@@ -382,6 +382,33 @@ describe('ReportesPagina (503): exportar y sin micrófono', () => {
     ]);
   });
 
+  it('505: «Exportar a PDF» descarga un .pdf armado en el navegador', async () => {
+    const descargas = capturarDescargas();
+    await conResultado();
+    fireEvent.click(screen.getByRole('button', { name: 'Exportar a PDF' }));
+    await vi.waitFor(() => expect(descargas).toHaveLength(1), ESPERA_DESCARGA);
+    expect(descargas[0].nombre).toBe('reporte-cobros-2027-03-20-1000.pdf');
+    expect(descargas[0].contenido.type).toBe('application/pdf');
+    const texto = new TextDecoder('latin1').decode(await descargas[0].contenido.arrayBuffer());
+    expect(texto.startsWith('%PDF-')).toBe(true);
+    expect(texto).toContain('Pedido');
+    expect(texto).toContain('Cobros vencidos de este año');
+    expect(texto).toContain('Bs 12.500,00');
+  });
+
+  it('505: «Exportar a Word» descarga un .docx armado en el navegador', async () => {
+    const descargas = capturarDescargas();
+    await conResultado();
+    fireEvent.click(screen.getByRole('button', { name: 'Exportar a Word' }));
+    await vi.waitFor(() => expect(descargas).toHaveLength(1), ESPERA_DESCARGA);
+    expect(descargas[0].nombre).toBe('reporte-cobros-2027-03-20-1000.docx');
+    expect(descargas[0].contenido.type).toBe('application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    const bytes = new Uint8Array(await descargas[0].contenido.arrayBuffer());
+    // Un .docx es un zip: empieza con «PK»
+    expect(Array.from(bytes.slice(0, 2))).toEqual([0x50, 0x4b]);
+    expect(bytes.length).toBeGreaterThan(1000);
+  });
+
   it('sin micrófono en el navegador el pedido se escribe y se consulta igual (criterio 1)', async () => {
     sesion();
     dibujar('/supervision/reportes', [catalogo(), historial(), consultar({ texto: 'Cobros vencidos de este año' }), historial()]);
