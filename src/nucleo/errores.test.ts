@@ -4,6 +4,7 @@ import {
   avisoNoDisponible,
   codigoDeError,
   erroresDeCampo,
+  esConversacionExpirada,
   esPedidoNoReconocido,
   mensajeDeError,
   mensajeErrorEjecucion,
@@ -66,6 +67,14 @@ describe('mensajes de reportes (503)', () => {
     expect(mensajeErrorReporte(conCodigo('SIN_PERMISO'))).toBe('No tienes permiso para hacer esta acción.');
     expect(esPedidoNoReconocido('RECETA_INVALIDA')).toBe(true);
     expect(esPedidoNoReconocido('LLM_NO_DISPONIBLE')).toBe(false);
+  });
+
+  it('505: la conversación expirada tiene su texto', () => {
+    expect(mensajeErrorReporte(conCodigo('CONVERSACION_NO_ENCONTRADA'))).toBe(
+      'La conversación expiró: vuelve a hacer el pedido',
+    );
+    expect(esConversacionExpirada('CONVERSACION_NO_ENCONTRADA')).toBe(true);
+    expect(esConversacionExpirada('TIEMPO_AGOTADO')).toBe(false);
   });
 });
 

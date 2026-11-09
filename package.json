@@ -1,6 +1,6 @@
 {
   "name": "mf-supervision",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -19,7 +19,10 @@
     "@mui/material": "^9.5.0",
     "@tanstack/react-router": "^1.170.46",
     "@tanstack/react-table": "^9.3.1",
+    "docx": "9.15.3",
     "graphql": "^16.14.2",
+    "jspdf": "4.2.1",
+    "jspdf-autotable": "5.0.9",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "rxjs": "^7.8.2",

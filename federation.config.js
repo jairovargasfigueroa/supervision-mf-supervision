@@ -18,8 +18,9 @@ export default withNativeFederation({
       },
       {
         // transformers.js (302) va solo dentro del worker del dictado (build.mjs) y SheetJS (503) solo en este
-        // microfrontend (se instala desde su CDN, sin versión del registro de npm): no se comparten con el shell
-        skipList: [...REACT_SKIP_LIST, '@huggingface/transformers', 'xlsx'],
+        // microfrontend (se instala desde su CDN, sin versión del registro de npm): no se comparten con el shell.
+        // jspdf, jspdf-autotable y docx (505) tampoco: solo se usan aquí y se cargan al exportar
+        skipList: [...REACT_SKIP_LIST, '@huggingface/transformers', 'xlsx', 'jspdf', 'jspdf-autotable', 'docx'],
         overrides: {
           react: {
             singleton: true,
