@@ -98,7 +98,14 @@ const MENSAJES_REPORTES: Record<string, string> = {
   REPORTES_NO_DISPONIBLES: REPORTES_NO_DISPONIBLES,
   SERVICIO_NO_DISPONIBLE: REPORTES_NO_DISPONIBLES,
   TIEMPO_AGOTADO: 'El reporte tardó demasiado; intenta de nuevo',
+  // 505: la conversación no existe, expiró (30 min sin uso) o es de otro usuario
+  CONVERSACION_NO_ENCONTRADA: 'La conversación expiró: vuelve a hacer el pedido',
 };
+
+/** 505: la conversación ya no sirve; la pantalla empieza una nueva. */
+export function esConversacionExpirada(codigo: string | undefined): boolean {
+  return codigo === 'CONVERSACION_NO_ENCONTRADA';
+}
 
 /** El pedido no corresponde al catálogo: se muestran los conjuntos, ejemplos y reportes comunes. */
 export function esPedidoNoReconocido(codigo: string | undefined): boolean {
@@ -119,7 +126,7 @@ const MENSAJE_EJECUCION_FALLIDA = 'La ejecución falló por un error inesperado.
 const MENSAJES_EJECUCION: Record<string, string> = {
   SIN_HERRAMIENTAS: 'Sin herramientas disponibles',
   REPORTE_INVALIDO: 'El agente no logró armar un reporte válido.',
-  EJECUCION_TIEMPO_AGOTADO: 'El agente superó el tiempo máximo de 3 minutos.',
+  EJECUCION_TIEMPO_AGOTADO: 'El agente superó el tiempo máximo de 4 minutos.', // 505: 4 minutos
   INTERRUMPIDA: 'La ejecución se interrumpió porque el servicio se reinició.',
   LLM_NO_DISPONIBLE: 'El modelo de lenguaje no respondió.',
   ERROR_INTERNO: MENSAJE_EJECUCION_FALLIDA,

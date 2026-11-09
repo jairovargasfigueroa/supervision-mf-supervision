@@ -4,7 +4,12 @@ import { MockedProvider } from '@apollo/client/testing/react';
 import type { MockLink } from '@apollo/client/testing';
 import { createMemoryHistory, RouterProvider } from '@tanstack/react-router';
 import { crearRouter } from '../router';
-import { CATALOGO_REPORTES, CONSULTAR_REPORTE, CONSULTAS_REPORTE, type AtajoReporte } from './reportes.graphql';
+import {
+  CATALOGO_REPORTES,
+  CONSULTAR_REPORTE,
+  CONSULTAS_REPORTE,
+  type VariablesConsultarReporte,
+} from './reportes.graphql';
 
 afterEach(() => {
   cleanup();
@@ -101,15 +106,37 @@ const RESULTADO = {
   creadaEn: '2027-03-20T14:00:00Z',
 };
 
+/** Pregunta de aclaración que devuelve el asistente (505). */
+interface Aclaracion {
+  pregunta: string;
+  opciones: string[];
+  preguntasRestantes?: number;
+}
+
+/** `consultarReporte` con un reporte (por defecto), una aclaración o un error, en la conversación `conv-1`. */
 const consultar = (
-  variables: { texto: string } | { atajo: AtajoReporte },
-  respuesta: { datos?: object; codigo?: string; demora?: number } = {},
+  variables: VariablesConsultarReporte,
+  respuesta: { datos?: object; aclaracion?: Aclaracion; codigo?: string; demora?: number; conversacionId?: string } = {},
 ): MockLink.MockedResponse => ({
   request: { query: CONSULTAR_REPORTE, variables },
   delay: respuesta.demora,
   result: respuesta.codigo
     ? { data: null, errors: [{ message: 'x', path: ['consultarReporte'], extensions: { codigo: respuesta.codigo, servicio: 'ia' } }] }
-    : { data: { consultarReporte: { ...RESULTADO, ...respuesta.datos } } },
+    : {
+        data: {
+          consultarReporte: {
+            __typename: 'RespuestaReporte',
+            conversacionId: respuesta.conversacionId ?? 'conv-1',
+            ...(respuesta.aclaracion
+              ? {
+                  tipo: 'ACLARACION',
+                  consulta: null,
+                  aclaracion: { __typename: 'AclaracionReporte', preguntasRestantes: 4, ...respuesta.aclaracion },
+                }
+              : { tipo: 'REPORTE', consulta: { ...RESULTADO, ...respuesta.datos }, aclaracion: null }),
+          },
+        },
+      },
 });
 
 const cuadro = () => screen.getByRole('textbox', { name: 'Pedido del reporte' });
@@ -286,7 +313,10 @@ describe('ReportesPagina (503): historial', () => {
 
     fireEvent.click(lista.getByText('Planillas observadas de la zona norte'));
     expect(await screen.findByRole('region', { name: 'Resultado del reporte' })).toBeTruthy();
-    expect((cuadro() as HTMLTextAreaElement).value).toBe('Planillas observadas de la zona norte');
+    // 505: el pedido queda en la conversación y el cuadro de texto, libre
+    const conversacion = within(screen.getByRole('list', { name: 'Conversación' }));
+    expect(conversacion.getByText('Planillas observadas de la zona norte')).toBeTruthy();
+    expect((cuadro() as HTMLTextAreaElement).value).toBe('');
 
     fireEvent.click(lista.getByText('Cobros vencidos'));
     expect(await screen.findByText('Pedido: Cobros vencidos')).toBeTruthy();
@@ -352,6 +382,33 @@ describe('ReportesPagina (503): exportar y sin micrófono', () => {
     ]);
   });
 
+  it('505: «Exportar a PDF» descarga un .pdf armado en el navegador', async () => {
+    const descargas = capturarDescargas();
+    await conResultado();
+    fireEvent.click(screen.getByRole('button', { name: 'Exportar a PDF' }));
+    await vi.waitFor(() => expect(descargas).toHaveLength(1), ESPERA_DESCARGA);
+    expect(descargas[0].nombre).toBe('reporte-cobros-2027-03-20-1000.pdf');
+    expect(descargas[0].contenido.type).toBe('application/pdf');
+    const texto = new TextDecoder('latin1').decode(await descargas[0].contenido.arrayBuffer());
+    expect(texto.startsWith('%PDF-')).toBe(true);
+    expect(texto).toContain('Pedido');
+    expect(texto).toContain('Cobros vencidos de este año');
+    expect(texto).toContain('Bs 12.500,00');
+  });
+
+  it('505: «Exportar a Word» descarga un .docx armado en el navegador', async () => {
+    const descargas = capturarDescargas();
+    await conResultado();
+    fireEvent.click(screen.getByRole('button', { name: 'Exportar a Word' }));
+    await vi.waitFor(() => expect(descargas).toHaveLength(1), ESPERA_DESCARGA);
+    expect(descargas[0].nombre).toBe('reporte-cobros-2027-03-20-1000.docx');
+    expect(descargas[0].contenido.type).toBe('application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    const bytes = new Uint8Array(await descargas[0].contenido.arrayBuffer());
+    // Un .docx es un zip: empieza con «PK»
+    expect(Array.from(bytes.slice(0, 2))).toEqual([0x50, 0x4b]);
+    expect(bytes.length).toBeGreaterThan(1000);
+  });
+
   it('sin micrófono en el navegador el pedido se escribe y se consulta igual (criterio 1)', async () => {
     sesion();
     dibujar('/supervision/reportes', [catalogo(), historial(), consultar({ texto: 'Cobros vencidos de este año' }), historial()]);
@@ -378,5 +435,163 @@ describe('ReportesPagina (503): exportar y sin micrófono', () => {
     expect(await screen.findByText('Sin conexión · datos del 19/03/2027 18:00')).toBeTruthy();
     expect(await screen.findByRole('button', { name: 'Cobros vencidos' })).toBeTruthy();
     expect(screen.getByText('Aún no hiciste consultas.')).toBeTruthy();
+  });
+});
+
+describe('ReportesPagina (505): conversación', () => {
+  const PREGUNTA = '«cemento» coincide con dos materiales. ¿Cuál?';
+  const OPCIONES = ['Cemento IP-30', 'Cemento cola', 'Todos'];
+  const CONSUMO = {
+    id: 'c2',
+    texto: 'Cemento IP-30',
+    conjunto: 'CONSUMO_MATERIAL',
+    tituloConjunto: 'Material usado',
+    aplicado: [{ __typename: 'ElementoAplicado', nombre: 'Material', valor: 'Cemento IP-30' }],
+    resumen: 'Se usaron 120 bolsas de Cemento IP-30.',
+    columnas: [
+      { __typename: 'ColumnaReporte', clave: 'material', titulo: 'Material', tipo: 'TEXTO' },
+      { __typename: 'ColumnaReporte', clave: 'cantidad', titulo: 'Cantidad', tipo: 'NUMERO' },
+    ],
+    filas: [['Cemento IP-30', '120']],
+  };
+  const TORRE_NORTE = { ...CONSUMO, id: 'c3', texto: '¿y en Torre Norte?', resumen: 'En Torre Norte se usaron 40 bolsas.' };
+
+  const conversacion = () => within(screen.getByRole('list', { name: 'Conversación' }));
+  const turnos = () => Array.from(screen.getByRole('list', { name: 'Conversación' }).children);
+  const botonConsultar = () => screen.getByRole('button', { name: 'Consultar' }) as HTMLButtonElement;
+
+  async function escribir(texto: string) {
+    fireEvent.change(await screen.findByRole('textbox', { name: 'Pedido del reporte' }), { target: { value: texto } });
+  }
+
+  it('una pregunta con opciones en botones: al pulsar una se envía en la conversación y llega el reporte (criterios 1, 2 y 5)', async () => {
+    sesion();
+    dibujar('/supervision/reportes', [
+      catalogo(),
+      historial(),
+      consultar({ texto: '¿Cuánto cemento se usó?' }, { aclaracion: { pregunta: PREGUNTA, opciones: OPCIONES } }),
+      consultar({ texto: 'Cemento IP-30', conversacionId: 'conv-1' }, { datos: CONSUMO }),
+    ]);
+    await pedir('¿Cuánto cemento se usó?');
+
+    const pregunta = within(await screen.findByRole('region', { name: 'Pregunta del asistente' }));
+    expect(pregunta.getByText(PREGUNTA)).toBeTruthy();
+    const opciones = within(pregunta.getByRole('group', { name: 'Opciones de respuesta' })).getAllByRole('button');
+    expect(opciones.map((b) => b.textContent)).toEqual(OPCIONES);
+    // El pedido queda en la conversación y el cuadro se vacía para responder
+    expect(conversacion().getByText('¿Cuánto cemento se usó?')).toBeTruthy();
+    expect((cuadro() as HTMLTextAreaElement).value).toBe('');
+
+    fireEvent.click(pregunta.getByRole('button', { name: 'Cemento IP-30' }));
+    const resultado = within(await screen.findByRole('region', { name: 'Resultado del reporte' }));
+    expect(resultado.getByRole('heading', { name: 'Material usado' })).toBeTruthy();
+    expect(resultado.getByText('Pedido: ¿Cuánto cemento se usó? · Cemento IP-30')).toBeTruthy();
+    expect(resultado.getByText('Se usaron 120 bolsas de Cemento IP-30.')).toBeTruthy();
+
+    // Todo queda a la vista, en orden; la pregunta ya respondida no se puede volver a pulsar
+    expect(turnos()).toHaveLength(4);
+    expect(within(turnos()[2] as HTMLElement).getByText('Cemento IP-30')).toBeTruthy();
+    expect((pregunta.getByRole('button', { name: 'Cemento cola' }) as HTMLButtonElement).disabled).toBe(true);
+    // La respuesta nueva recibe el foco (el botón pulsado ya no sirve)
+    expect(document.activeElement).toBe(turnos()[3]);
+  });
+
+  it('después de un reporte, el seguimiento va con el conversacionId y se suma a la conversación (criterio 6)', async () => {
+    sesion();
+    dibujar('/supervision/reportes', [
+      catalogo(),
+      historial(),
+      consultar({ texto: 'Cemento usado este mes' }, { datos: CONSUMO }),
+      consultar({ texto: '¿y en Torre Norte?', conversacionId: 'conv-1' }, { datos: TORRE_NORTE }),
+    ]);
+    await pedir('Cemento usado este mes');
+    await screen.findByRole('region', { name: 'Resultado del reporte' });
+
+    await pedir('¿y en Torre Norte?');
+    expect(await screen.findByText('En Torre Norte se usaron 40 bolsas.')).toBeTruthy();
+    const resultados = screen.getAllByRole('region', { name: 'Resultado del reporte' });
+    expect(resultados).toHaveLength(2);
+    expect(within(resultados[1]).getByText('Pedido: ¿y en Torre Norte?')).toBeTruthy();
+    expect(within(resultados[0]).getByText('Se usaron 120 bolsas de Cemento IP-30.')).toBeTruthy();
+  });
+
+  it('«Nueva consulta» borra la conversación y el siguiente pedido empieza otra; un reporte común también (criterio 7)', async () => {
+    sesion();
+    dibujar('/supervision/reportes', [
+      catalogo(),
+      historial(),
+      consultar({ texto: 'Cemento usado este mes' }, { datos: CONSUMO }),
+      consultar({ texto: 'Cobros vencidos de este año' }, { conversacionId: 'conv-2' }),
+      consultar({ atajo: 'COBROS_VENCIDOS' }, { datos: { id: 'c4', texto: null, atajo: 'COBROS_VENCIDOS' }, conversacionId: 'conv-3' }),
+    ]);
+    expect(screen.queryByRole('button', { name: 'Nueva consulta' })).toBeNull();
+    await pedir('Cemento usado este mes');
+    await screen.findByRole('region', { name: 'Resultado del reporte' });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Nueva consulta' }));
+    expect(screen.queryByRole('list', { name: 'Conversación' })).toBeNull();
+    expect(screen.queryByRole('region', { name: 'Resultado del reporte' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Nueva consulta' })).toBeNull();
+    // Sin conversación vuelve el mínimo de 3 caracteres
+    await escribir('sí');
+    expect(botonConsultar().disabled).toBe(true);
+
+    // Sin conversacionId: el mock solo responde a las variables sin él
+    await pedir('Cobros vencidos de este año');
+    expect(await screen.findByText('Hay 1 cobro vencido por Bs 12 500.')).toBeTruthy();
+    expect(conversacion().queryByText('Cemento usado este mes')).toBeNull();
+
+    // Un reporte común empieza otra conversación, aunque haya una abierta
+    fireEvent.click(screen.getByRole('button', { name: 'Cobros vencidos' }));
+    expect(await screen.findByText('Pedido: Cobros vencidos')).toBeTruthy();
+    expect(conversacion().queryByText('Cobros vencidos de este año')).toBeNull();
+  });
+
+  it('con la conversación expirada avisa «La conversación expiró: vuelve a hacer el pedido» y empieza una nueva (criterio 8)', async () => {
+    sesion();
+    dibujar('/supervision/reportes', [
+      catalogo(),
+      historial(),
+      consultar({ texto: '¿Cuánto cemento se usó?' }, { aclaracion: { pregunta: PREGUNTA, opciones: OPCIONES } }),
+      consultar({ texto: 'Todos', conversacionId: 'conv-1' }, { codigo: 'CONVERSACION_NO_ENCONTRADA' }),
+      consultar({ texto: '¿Cuánto cemento se usó en total?' }, { datos: CONSUMO, conversacionId: 'conv-2' }),
+    ]);
+    await pedir('¿Cuánto cemento se usó?');
+    fireEvent.click(await screen.findByRole('button', { name: 'Todos' }));
+
+    expect(await screen.findByText('La conversación expiró: vuelve a hacer el pedido')).toBeTruthy();
+    expect(screen.queryByRole('list', { name: 'Conversación' })).toBeNull();
+    // El texto vuelve al cuadro; sin conversación pide de 3 a 500 caracteres
+    expect((cuadro() as HTMLTextAreaElement).value).toBe('Todos');
+
+    await pedir('¿Cuánto cemento se usó en total?');
+    expect(await screen.findByRole('region', { name: 'Resultado del reporte' })).toBeTruthy();
+    expect(screen.queryByText('La conversación expiró: vuelve a hacer el pedido')).toBeNull();
+  });
+
+  it('responde desde 1 carácter solo con una conversación abierta', async () => {
+    sesion();
+    dibujar('/supervision/reportes', [
+      catalogo(),
+      historial(),
+      consultar(
+        { texto: 'Planillas del periodo' },
+        { aclaracion: { pregunta: '¿De qué periodo? Escribe el número de la opción.', opciones: [] } },
+      ),
+      consultar({ texto: '2', conversacionId: 'conv-1' }, { datos: { id: 'c5' } }),
+    ]);
+    await escribir('x');
+    expect(botonConsultar().disabled).toBe(true);
+    expect(screen.getByText('El pedido debe tener entre 3 y 500 caracteres.')).toBeTruthy();
+
+    await pedir('Planillas del periodo');
+    const pregunta = within(await screen.findByRole('region', { name: 'Pregunta del asistente' }));
+    expect(pregunta.queryByRole('group', { name: 'Opciones de respuesta' })).toBeNull();
+
+    await escribir('2');
+    expect(botonConsultar().disabled).toBe(false);
+    expect(screen.queryByText(/El pedido debe tener entre/)).toBeNull();
+    fireEvent.click(botonConsultar());
+    expect(await screen.findByRole('region', { name: 'Resultado del reporte' })).toBeTruthy();
   });
 });

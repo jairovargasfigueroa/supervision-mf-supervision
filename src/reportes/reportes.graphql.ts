@@ -2,7 +2,8 @@ import { gql, type TypedDocumentNode } from '@apollo/client';
 import { useConsultaConRespaldo } from '../nucleo/consulta-respaldo';
 
 // Operaciones de la pantalla «Reportes» (503; docs/contratos.md y SDL del diseño de la 503). La receta no se expone
-// por GraphQL: la persona ve `aplicado`.
+// por GraphQL: la persona ve `aplicado`. 505: `consultarReporte` responde con un reporte o con una pregunta de
+// aclaración, dentro de una conversación (`conversacionId`).
 
 export type ConjuntoReporte = 'OBRAS' | 'CONSUMO_MATERIAL' | 'MOVIMIENTOS' | 'COBROS' | 'PLANILLAS' | 'CONSUMOS_ATIPICOS';
 
@@ -86,8 +87,30 @@ export interface CatalogoReportes {
 /** Lo que se envía: el texto del usuario o un reporte común (exactamente uno). */
 export type PedidoReporte = { texto: string } | { atajo: AtajoReporte };
 
-/** Largo permitido del pedido (503, criterio 3). */
+/** 505: tipo de respuesta de un turno de la conversación. */
+export type TipoRespuestaReporte = 'REPORTE' | 'ACLARACION';
+
+/** 505: pregunta del asistente cuando al pedido le falta algo o es ambiguo; las opciones salen de los datos reales. */
+export interface AclaracionReporte {
+  pregunta: string;
+  opciones: string[];
+  preguntasRestantes: number;
+}
+
+/** 505: respuesta de `consultarReporte`: `consulta` con `REPORTE`, `aclaracion` con `ACLARACION`. */
+export interface RespuestaReporte {
+  conversacionId: string;
+  tipo: TipoRespuestaReporte;
+  consulta: ConsultaReporte | null;
+  aclaracion: AclaracionReporte | null;
+}
+
+/** Variables de `consultarReporte`: sin `conversacionId` empieza una conversación nueva (505). */
+export type VariablesConsultarReporte = { texto?: string; atajo?: AtajoReporte; conversacionId?: string };
+
+/** Largo permitido del pedido (503, criterio 3); dentro de una conversación, desde 1 carácter (505). */
 export const LARGO_MINIMO_PEDIDO = 3;
+export const LARGO_MINIMO_RESPUESTA = 1;
 export const LARGO_MAXIMO_PEDIDO = 500;
 
 /** Consultas del historial (503, criterio 16). */
@@ -136,33 +159,39 @@ export const CONSULTAS_REPORTE: TypedDocumentNode<{ consultasReporte: ConsultaRe
   }
 `;
 
-export const CONSULTAR_REPORTE: TypedDocumentNode<
-  { consultarReporte: ConsultaReporte },
-  { texto?: string; atajo?: AtajoReporte }
-> = gql`
-  mutation ConsultarReporte($texto: String, $atajo: AtajoReporte) {
-    consultarReporte(texto: $texto, atajo: $atajo) {
-      id
-      texto
-      atajo
-      conjunto
-      tituloConjunto
-      aplicado {
-        nombre
-        valor
+export const CONSULTAR_REPORTE: TypedDocumentNode<{ consultarReporte: RespuestaReporte }, VariablesConsultarReporte> = gql`
+  mutation ConsultarReporte($texto: String, $atajo: AtajoReporte, $conversacionId: ID) {
+    consultarReporte(texto: $texto, atajo: $atajo, conversacionId: $conversacionId) {
+      conversacionId
+      tipo
+      consulta {
+        id
+        texto
+        atajo
+        conjunto
+        tituloConjunto
+        aplicado {
+          nombre
+          valor
+        }
+        resumen
+        resumenPlantilla
+        avisos
+        columnas {
+          clave
+          titulo
+          tipo
+        }
+        filas
+        totalFilas
+        truncado
+        creadaEn
       }
-      resumen
-      resumenPlantilla
-      avisos
-      columnas {
-        clave
-        titulo
-        tipo
+      aclaracion {
+        pregunta
+        opciones
+        preguntasRestantes
       }
-      filas
-      totalFilas
-      truncado
-      creadaEn
     }
   }
 `;
